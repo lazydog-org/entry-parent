@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<project default="all" basedir=".">
+
+	<!-- ========================================================== -->
+	<!-- Define build script constants.				-->
+	<!-- ========================================================== -->
+	<property file="../build.properties"/>
+
+	<!-- ========================================================== -->
+	<!-- Create tables.						-->
+	<!-- ========================================================== -->
+	<target name="create" description="Create tables.">
+		<sql driver="${driver}" url="${url}" 
+		     userid="${schemaUserId}" password="${schemaPassword}" 
+		     onerror="continue">
+			<path>
+				<fileset dir=".">
+					<include name="**/create*.*"/>
+				</fileset>
+			</path>
+		</sql>
+	</target>
+
+	<!-- ========================================================== -->
+	<!-- Drop tables.						-->
+	<!-- ========================================================== -->
+	<target name="drop" description="Drop tables.">
+		<sql driver="${driver}" url="${url}" 
+		     userid="${schemaUserId}" password="${schemaPassword}" 
+		     onerror="continue">
+			<path>
+				<fileset dir=".">
+					<include name="**/drop*.*"/>
+				</fileset>
+			</path>
+		</sql>
+	</target>
+
+</project>

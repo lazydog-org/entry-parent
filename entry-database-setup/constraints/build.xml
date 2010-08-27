@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<project default="all" basedir=".">
+
+	<!-- ========================================================== -->
+	<!-- Define build script constants.				-->
+	<!-- ========================================================== -->
+	<property file="../build.properties"/>
+
+	<!-- ========================================================== -->
+	<!-- Add constraints.						-->
+	<!-- ========================================================== -->
+	<target name="add" description="Add constraints.">
+		<sql driver="${driver}" url="${url}" 
+		     userid="${dbaUserId}" password="${dbaPassword}" 
+		     onerror="continue">
+			<path>
+				<fileset dir=".">
+					<include name="**/add*.*"/>
+				</fileset>
+			</path>
+		</sql>
+	</target>
+
+	<!-- ========================================================== -->
+	<!-- Drop constraints.						-->
+	<!-- ========================================================== -->
+	<target name="drop" description="Drop constraints.">
+		<sql driver="${driver}" url="${url}" 
+		     userid="${dbaUserId}" password="${dbaPassword}" 
+		     onerror="continue">
+			<path>
+				<fileset dir=".">
+					<include name="**/drop*.*"/>
+				</fileset>
+			</path>
+		</sql>
+	</target>
+
+</project>

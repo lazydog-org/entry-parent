@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<project default="all" basedir=".">
+
+	<!-- ========================================================== -->
+	<!-- Define build script constants.				-->
+	<!-- ========================================================== -->
+	<property file="../build.properties"/>
+
+	<!-- ========================================================== -->
+	<!-- Setup database.						-->
+	<!-- ========================================================== -->
+	<target name="setup" description="Setup database.">
+		<sql driver="${driver}" url="${url}" 
+		     userid="${dbaUserId}" password="${dbaPassword}" 
+		     onerror="continue">
+			<path>
+				<fileset dir=".">
+					<include name="**/setup*.*"/>
+				</fileset>
+			</path>
+		</sql>
+	</target>
+
+	<!-- ========================================================== -->
+	<!-- Cleanup database.						-->
+	<!-- ========================================================== -->
+	<target name="cleanup" description="Cleanup database.">
+		<sql driver="${driver}" url="${url}" 
+		     userid="${dbaUserId}" password="${dbaPassword}" 
+		     onerror="continue">
+			<path>
+				<fileset dir=".">
+					<include name="**/cleanup*.*"/>
+				</fileset>
+			</path>
+		</sql>
+	</target>
+ 
+</project>

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<project default="all" basedir=".">
+
+	<!-- ========================================================== -->
+	<!-- Define build script constants.				-->
+	<!-- ========================================================== -->
+	<property file="build.properties"/>
+
+	<!-- ========================================================== -->
+	<!-- Create database.						-->
+	<!-- ========================================================== --> 
+	<target name="create" description="Create database.">
+		<ant dir="config" target="setup"/>
+		<ant dir="users" target="create"/>
+		<ant dir="schemas" target="create"/>
+		<ant dir="privileges" target="grant"/>
+		<ant dir="tables" target="create"/>
+		<ant dir="data" target="insert"/>
+		<ant dir="constraints" target="add"/>
+	</target>
+
+	<!-- =========================================================  -->
+	<!-- Drop database.						-->
+	<!-- ========================================================== -->
+	<target name="drop" description="Drop database.">
+		<ant dir="constraints" target="drop"/>
+		<ant dir="data" target="delete"/>
+		<ant dir="tables" target="drop"/>
+		<ant dir="privileges" target="revoke"/>
+		<ant dir="schemas" target="drop"/>
+		<ant dir="users" target="drop"/>
+		<ant dir="config" target="cleanup"/>
+	</target>
+
+</project>

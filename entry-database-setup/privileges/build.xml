@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<project default="all" basedir=".">
+
+	<!-- ========================================================== -->
+	<!-- Define build script constants.                             -->
+	<!-- ========================================================== -->
+	<property file="../build.properties"/>
+
+	<!-- ========================================================== -->
+	<!-- Grant privileges.					  	-->
+	<!-- ========================================================== -->
+	<target name="grant" description="Grant privileges.">
+		<sql driver="${driver}" url="${url}" 
+		     userid="${dbaUserId}" password="${dbaPassword}" 
+		     onerror="continue">
+			<path>
+				<fileset dir=".">
+					<include name="**/grant*.*"/>
+				</fileset>
+			</path>
+		</sql>
+	</target>
+
+	<!-- ========================================================== -->
+	<!-- Revoke privileges.				  		-->
+	<!-- ========================================================== -->
+	<target name="revoke" description="Revoke privileges.">
+		<sql driver="${driver}" url="${url}" 
+		     userid="${dbaUserId}" password="${dbaPassword}" 
+		     onerror="continue">
+			<path>
+				<fileset dir=".">
+					<include name="**/revoke*.*"/>
+				</fileset>
+			</path>
+		</sql>
+	</target>
+
+</project>
