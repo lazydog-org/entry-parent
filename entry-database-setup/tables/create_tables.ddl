@@ -5,7 +5,7 @@ create table entry.application_user
          last_name              varchar(50) not null,
          first_name             varchar(50) not null,
          email_address          varchar(50) not null,
-	 register_time          datetime not null,
-	 modify_time		datetime,
+	 modify_time		datetime not null,
+         register_time          datetime not null,
          primary key (id)
 	) type = innodb;
