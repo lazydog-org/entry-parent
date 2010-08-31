@@ -17,10 +17,6 @@
                 <column name="id"/>
                 <generated-value strategy="IDENTITY"/>
             </id>
-            <basic name="createTime">
-                <column name="create_time" nullable="false"/>
-                <temporal>TIMESTAMP</temporal>
-            </basic>
             <basic name="emailAddress">
                 <column name="email_address" nullable="false"/>
             </basic>
@@ -34,8 +30,15 @@
                 <column name="modify_time"/>
                 <temporal>TIMESTAMP</temporal>
             </basic>
+            <basic name="registerTime">
+                <column name="register_time" nullable="false"/>
+                <temporal>TIMESTAMP</temporal>
+            </basic>
             <basic name="username">
                 <column name="username" nullable="false" unique="true"/>
+            </basic>
+            <basic name="uuid">
+                <column name="uuid" nullable="false" unique="true"/>
             </basic>
         </attributes>
     </entity>
