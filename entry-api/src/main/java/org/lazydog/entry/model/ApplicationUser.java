@@ -22,9 +22,6 @@ public class ApplicationUser
                   Serializable {
     
     private static final long serialVersionUID = 1L;
-
-    @NotNull(message="Create time is required.")
-    private Date createTime;
     @NotNull(message="Email address is required.")
     @Size(max=50, message="Email address cannot contain more than 50 characters.")
     @Pattern(regexp="")
@@ -36,10 +33,14 @@ public class ApplicationUser
     @NotNull(message="Last name is required.")
     @Size(max=50, message="Last name cannot contain more than 50 characters.")
     private String lastName;
+    @NotNull(message="Modify time is required.")
     private Date modifyTime;
+    @NotNull(message="Register time is required.")
+    private Date registerTime;
     @NotNull(message="Username is required.")
     @Size(max=50, message="Username cannot contain more than 50 characters.")
     private String username;
+    private String uuid;
 
     /**
      * Compare this object to the specified object.
@@ -82,13 +83,14 @@ public class ApplicationUser
         
         // Create a copy.
         copy = new ApplicationUser();
-        copy.setCreateTime(this.getCreateTime());
         copy.setEmailAddress(this.getEmailAddress());
         copy.setFirstName(this.getFirstName());
         copy.setId(this.getId());
         copy.setLastName(this.getLastName());
         copy.setModifyTime(this.getModifyTime());
+        copy.setRegisterTime(this.getRegisterTime());
         copy.setUsername(this.getUsername());
+        copy.setUuid(this.getUuid());
 
         return copy;
     }
@@ -117,15 +119,6 @@ public class ApplicationUser
         }
         
         return equals;
-    }
-
-    /**
-     * Get the create time.
-     * 
-     * @return  the create time.
-     */
-    public Date getCreateTime() {
-        return this.createTime;
     }
 
     /**
@@ -174,12 +167,30 @@ public class ApplicationUser
     }
 
     /**
+     * Get the register time.
+     *
+     * @return  the register time.
+     */
+    public Date getRegisterTime() {
+        return this.registerTime;
+    }
+
+    /**
      * Get the username.
      *
      * @return  the username.
      */
     public String getUsername() {
         return this.username;
+    }
+
+    /**
+     * Get the universally unique identifier (UUID).
+     * 
+     * @return  the universally unique identifier (UUID).
+     */
+    public String getUuid() {
+        return this.uuid;
     }
 
     /**
@@ -197,6 +208,15 @@ public class ApplicationUser
         thisUsername = replaceNull(this.getUsername(), "");
         
         return thisUsername.hashCode();
+    }
+
+    /**
+     * Check if this object is valid.
+     *
+     * @return  true if this object is valid, otherwise false.
+     */
+    public boolean isValid() {
+        return (this.validate().isEmpty()) ? true : false;
     }
 
     /**
@@ -220,15 +240,6 @@ public class ApplicationUser
         }
 
         return (original == null) ? replacement : original;
-    }
-
-    /**
-     * Set the create time.
-     * 
-     * @param  createTime  the create time.
-     */
-    public void setCreateTime(Date createTime) {
-        this.createTime = createTime;
     }
 
     /**
@@ -277,12 +288,30 @@ public class ApplicationUser
     }
 
     /**
+     * Set the register time.
+     *
+     * @param  registerTime  the register time.
+     */
+    public void setRegisterTime(Date registerTime) {
+        this.registerTime = registerTime;
+    }
+
+    /**
      * Set the username.
      *
      * @param  username  the username.
      */
     public void setUsername(String username) {
         this.username = trimmed(username);
+    }
+
+    /**
+     * Set the universally unique identifier (UUID).
+     * 
+     * @param  uuid  the universally unique identifier (UUID).
+     */
+    public void setUuid(String uuid) {
+        this.uuid = uuid;
     }
 
     /**
@@ -300,13 +329,14 @@ public class ApplicationUser
         toString = new StringBuffer();
         
         toString.append("ApplicationUser [");
-        toString.append("createTime = ").append(this.getCreateTime());
         toString.append("emailAddress = ").append(this.getEmailAddress());
         toString.append("firstName = ").append(this.getFirstName());
         toString.append("id = ").append(this.getId());
         toString.append("lastName = ").append(this.getLastName());
         toString.append("modifyTime = ").append(this.getModifyTime());
+        toString.append("registerTime = ").append(this.getRegisterTime());
         toString.append("username = ").append(this.getUsername());
+        toString.append("uuid = ").append(this.getUuid());
         toString.append("]");
         
         return toString.toString();

@@ -2,6 +2,7 @@ package org.lazydog.entry.internal.service;
 
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 import javax.ejb.EJB;
 import javax.ejb.EJBException;
 import javax.ejb.Remote;
@@ -40,9 +41,25 @@ public class EntryServiceImpl
         return null;
     }
 
+    /**
+     * Register the application user.
+     *
+     * @param  applicationUser  the application user.
+     */
     @Override
-    public ApplicationUser register(ApplicationUser applicationUser) {
-        return null;
+    public void register(ApplicationUser applicationUser) {
+
+        // Set the register time, modify time, and UUID for the application user.
+        applicationUser.setRegisterTime(new Date());
+        applicationUser.setModifyTime(applicationUser.getRegisterTime());
+        applicationUser.setUuid(UUID.randomUUID().toString());
+
+        // Check if the application user is valid.
+        if (applicationUser.isValid()) {
+
+            // Persist the application user.
+            entryRepository.persist(applicationUser);
+        }
     }
 
     /**

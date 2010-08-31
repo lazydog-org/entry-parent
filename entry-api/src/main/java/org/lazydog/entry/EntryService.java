@@ -16,5 +16,5 @@ public interface EntryService {
 
     public ApplicationUser find(String username);
 
-    public ApplicationUser register(ApplicationUser applicationUser);
+    public void register(ApplicationUser applicationUser);
 }
