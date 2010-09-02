@@ -1,18 +1,14 @@
 package org.lazydog.entry.internal.account.manager;
 
 import java.util.ArrayList;
-import java.util.Hashtable;
 import java.util.List;
-import javax.naming.Context;
 import javax.naming.directory.Attribute;
 import javax.naming.directory.Attributes;
 import javax.naming.directory.BasicAttribute;
 import javax.naming.directory.BasicAttributes;
 import javax.naming.directory.DirContext;
-import javax.naming.directory.InitialDirContext;
 import javax.naming.ldap.Rdn;
 import javax.naming.ldap.LdapName;
-import javax.naming.InvalidNameException;
 import javax.naming.Name;
 import javax.naming.NameAlreadyBoundException;
 import javax.naming.NameNotFoundException;
@@ -33,6 +29,8 @@ public class AccountManagerImpl implements AccountManager {
     private static final String ACCOUNT_LOCK_TIME = "000001010000Z";    
     private static final String ACCOUNTS_CONTAINER_NAME = "Accounts";
     private static final String GROUPS_CONTAINER_NAME = "Groups";
+    private static final String DUMMY_ACCOUNT_NAME = "dummy";
+    private static final String DUMMY_ACCOUNT_PASSWORD = "dummy";
     private DirContext dirContext;
 
     /**
@@ -47,11 +45,22 @@ public class AccountManagerImpl implements AccountManager {
      */
     public boolean accountExists(String accountName) {
 
-        if (accountName == null) {
-            throw new NullPointerException("The account name is null.");
+        // Declare.
+        boolean accountExists;
+
+        checkNullAccountName(accountName);
+
+        try {
+
+            // Check if the account exists.
+            accountExists = entryExists(getAccountRDN(accountName));
+        }
+        catch(NamingException e) {
+            throw new AccountManagerException(
+                    "Unable to check if the account " + accountName + " exists.", e);
         }
 
-        return this.entryExists(getAccountDN(accountName));
+        return accountExists;
     }
 
     /**
@@ -61,34 +70,38 @@ public class AccountManagerImpl implements AccountManager {
      * @param  accountNames  the account names.
      *
      * @throws  AccountManagerException  if unable to add members to the group.
-     * @throws  NoSuchEntryException     if the group does not exist.
-     * @throws  NullPointerException     if the group name is null.
+     * @throws  NoSuchEntryException     if the group and/or one or more of the accounts do not exist.
+     * @throws  NullPointerException     if the group name and/or one or more of the account names is null.
      */
     public void addMembers(String groupName, List<String> accountNames) {
 
-        if (groupName == null) {
-            throw new NullPointerException("The group name is null.");
+        checkNullGroupName(groupName);
+        checkNoSuchGroup(groupName);
+
+        // Check if the account names is null.
+        if (accountNames == null) {
+            throw new NullPointerException("The account names is null.");
+        }
+        else {
+
+            // Loop through the account names.
+            for(String accountName : accountNames) {
+                checkNullAccountName(accountName);
+                checkNoSuchAccount(accountName);
+            }
         }
 
         try {
 
             // Declare.
-            Name groupDN;
             Attributes attributes;
-
-            // Get the group DN.
-            groupDN = getGroupDN(groupName);
 
             // Set the attributes.
             attributes = new BasicAttributes();
-            attributes.put(getUniqueMemberAttribute(accountNames.toArray(new String[accountNames.size()])));
+            attributes.put(getUniqueMemberAttribute(getUniqueMemberValues(accountNames)));
 
             // Add members to the group.
-            dirContext.modifyAttributes(groupDN, DirContext.ADD_ATTRIBUTE, attributes);
-        }
-        catch(NameNotFoundException e) {
-            throw new NoSuchEntryException(
-                    groupName, "Group " + groupName + " does not exist.", e);
+            dirContext.modifyAttributes(getGroupRDN(groupName), DirContext.ADD_ATTRIBUTE, attributes);
         }
         catch(NamingException e) {
             throw new AccountManagerException(
@@ -108,30 +121,21 @@ public class AccountManagerImpl implements AccountManager {
      */
     public void changePassword(String accountName, String password) {
 
-
-        if (accountName == null) {
-            throw new NullPointerException("The account name is null.");
-        }
+        checkNullAccountName(accountName);
+        checkNoSuchAccount(accountName);
 
         try {
 
             // Declare.
-            Name accountDN;
             Attributes attributes;
-
-            // Get the account DN.
-            accountDN = getAccountDN(accountName);
 
             // Set the attributes.
             attributes = new BasicAttributes();
-            attributes.put(new BasicAttribute("userPassword", EncryptPassword.encrypt(password)));
+            attributes.put(new BasicAttribute("userPassword", password));
+//attributes.put(new BasicAttribute("userPassword", EncryptPassword.encrypt(password)));
 
             // Change the password for the account.
-            dirContext.modifyAttributes(accountDN, DirContext.REPLACE_ATTRIBUTE, attributes);
-        }
-        catch(NameNotFoundException e) {
-            throw new NoSuchEntryException(
-                    accountName, "Account " + accountName + " does not exist.", e);
+            dirContext.modifyAttributes(getAccountRDN(accountName), DirContext.REPLACE_ATTRIBUTE, attributes);
         }
         catch(NamingException e) {
             throw new AccountManagerException(
@@ -140,15 +144,77 @@ public class AccountManagerImpl implements AccountManager {
     }
 
     /**
+     * Check if the account does not exist.
+     * 
+     * @param  accountName  the account name.
+     * 
+     * @throws  NoSuchEntryException  if the account does not exist.
+     */
+    private void checkNoSuchAccount(String accountName) {
+
+        // Check if the account does not exist.
+        if (!accountExists(accountName)) {
+            throw new NoSuchEntryException(
+                    accountName, "Account " + accountName + " does not exist.");
+        }
+    }
+
+    /**
+     * Check if the group does not exist.
+     *
+     * @param  groupName  the group name.
+     *
+     * @throws  NoSuchEntryException  if the group does not exist.
+     */
+    private void checkNoSuchGroup(String groupName) {
+
+        // Check if the group does not exist.
+        if (!groupExists(groupName)) {
+            throw new NoSuchEntryException(
+                    groupName, "Group " + groupName + " does not exist.");
+        }
+    }
+
+    /**
+     * Check if the account name is null.
+     * 
+     * @param  accountName  the account name.
+     * 
+     * @throws  NullPointerException  if the account name is null.
+     */
+    private static void checkNullAccountName(String accountName) {
+
+        // Check if the account name is null.
+        if (accountName == null) {
+            throw new NullPointerException("The account name is null.");
+        }
+    }
+
+    /**
+     * Check if the group name is null.
+     *
+     * @param  groupName  the group name.
+     *
+     * @throws  NullPointerException  if the group name is null.
+     */
+    private static void checkNullGroupName(String groupName) {
+
+        // Check if the group name is null.
+        if (groupName == null) {
+            throw new NullPointerException("The group name is null.");
+        }
+    }
+
+    /**
      * Check if the entry exists.
      *
-     * @param  dn  the DN.
+     * @param  rdn  the RDN.
      *
      * @return  true if the container exists, otherwise false.
      *
-     * @throws  AccountManagerException  if unable to check if the entry exists.
+     * @throws  NamingException  if unable to check if the entry exists.
      */
-    private boolean entryExists(Name dn) {
+    private boolean entryExists(Name rdn) throws NamingException {
 
         // Declare.
         boolean entryExists;
@@ -159,14 +225,10 @@ public class AccountManagerImpl implements AccountManager {
         try {
 
             // Get the attributes.
-            dirContext.getAttributes(dn);
+            dirContext.getAttributes(rdn);
         }
         catch(NameNotFoundException e) {
             entryExists = false;
-        }
-        catch(NamingException e) {
-            throw new AccountManagerException(
-                    "Unable to check if the entry " + dn.toString() + " exists.", e);
         }
 
         return entryExists;
@@ -179,16 +241,10 @@ public class AccountManagerImpl implements AccountManager {
      *
      * @return  true if the container exists, otherwise false.
      *
-     * @throws  AccountManagerException  if unable to check if the container exists.
-     * @throws  NullPointerException     if the container name is null.
+     * @throws  NamingException  if unable to check if the container exists.
      */
-    private boolean containerExists(String containerName) {
-
-        if (containerName == null) {
-            throw new NullPointerException("The container name is null.");
-        }
-
-        return this.entryExists(getContainerDN(containerName));
+    private boolean containerExists(String containerName) throws NamingException {
+        return entryExists(getContainerRDN(containerName));
     }
 
     /**
@@ -203,24 +259,18 @@ public class AccountManagerImpl implements AccountManager {
      */
     public void createAccount(String accountName, String password) {
 
-        if (accountName == null) {
-            throw new NullPointerException("The account name is null.");
-        }
+        checkNullAccountName(accountName);
 
         try {
 
             // Declare.
-            Name accountDN;
             Attributes attributes;
-
-            // Get the account DN.
-            accountDN = getAccountDN(accountName);
 
             // Set the attributes.
             attributes = new BasicAttributes();
             attributes.put(getObjectClassAttribute("top", "account", "simpleSecurityObject"));
             attributes.put(new BasicAttribute("uid", accountName));
-            //attributes.put(new BasicAttribute("userPassword", EncryptPassword.encrypt(password)));
+//attributes.put(new BasicAttribute("userPassword", EncryptPassword.encrypt(password)));
             attributes.put(new BasicAttribute("userPassword", password));
 
             // Check if the accounts container does not exist.
@@ -231,7 +281,7 @@ public class AccountManagerImpl implements AccountManager {
             }
 
             // Create the account.
-            dirContext.createSubcontext(accountDN, attributes);
+            dirContext.createSubcontext(getAccountRDN(accountName), attributes);
         }
         catch(NameAlreadyBoundException e) {
             throw new EntryAlreadyExistsException(
@@ -248,41 +298,20 @@ public class AccountManagerImpl implements AccountManager {
      * 
      * @param  containerName  the container name.
      *
-     * @throws  AccountManagerException      if unable to create the container.
-     * @throws  EntryAlreadyExistsException  if the container already exists.
-     * @throws  NullPointerException         if the container name is null.
+     * @throws  NamingException  if unable to create the container.
      */
-    private void createContainer(String containerName) {
+    private void createContainer(String containerName) throws NamingException {
 
-        if (containerName == null) {
-            throw new NullPointerException("The container name is null.");
-        }
+        // Declare.
+        Attributes attributes;
 
-        try {
+        // Set the attributes.
+        attributes = new BasicAttributes();
+        attributes.put(getObjectClassAttribute("top", "organizationalUnit"));
+        attributes.put(new BasicAttribute("ou", containerName));
 
-            // Declare.
-            Attributes attributes;
-            Name containerDN;
-
-            // Get the container DN.
-            containerDN = getContainerDN(containerName);
-
-            // Set the attributes.
-            attributes = new BasicAttributes();
-            attributes.put(getObjectClassAttribute("top", "organizationalUnit"));
-            attributes.put(new BasicAttribute("ou", containerName));
-
-            // Create the container.
-            dirContext.createSubcontext(containerDN, attributes);
-        }
-        catch(NameAlreadyBoundException e) {
-            throw new EntryAlreadyExistsException(
-                    containerName, "Container " + containerName + " already exists.", e);
-        }
-        catch(NamingException e) {
-            throw new AccountManagerException(
-                    "Unable to create the container " + containerName + ".", e);
-        }
+        // Create the container.
+        dirContext.createSubcontext(getContainerRDN(containerName), attributes);
     }
 
     /**
@@ -296,23 +325,18 @@ public class AccountManagerImpl implements AccountManager {
      */
     public void createGroup(String groupName) {
 
-        if (groupName == null) {
-            throw new NullPointerException("The group name is null.");
-        }
+        checkNullGroupName(groupName);
 
         try {
 
             // Declare.
             Attributes attributes;
-            Name groupDN;
-            
-            // Get the group DN.
-            groupDN = getGroupDN(groupName);
 
             // Set the attributes.
             attributes = new BasicAttributes();
             attributes.put(getObjectClassAttribute("top", "groupOfUniqueNames"));
             attributes.put(new BasicAttribute("cn", groupName));
+            attributes.put(new BasicAttribute("uniqueMember", getDummyAccountDN().toString()));
 
             // Check if the groups container does not exist.
             if (!containerExists(GROUPS_CONTAINER_NAME)) {
@@ -321,8 +345,15 @@ public class AccountManagerImpl implements AccountManager {
                 createContainer(GROUPS_CONTAINER_NAME);
             }
 
+            // Check if the dummy account does not exist.
+            if (!accountExists(DUMMY_ACCOUNT_NAME)) {
+
+                // Create the dummy account.
+                createAccount(DUMMY_ACCOUNT_NAME, DUMMY_ACCOUNT_PASSWORD);
+            }
+
             // Create the group.
-            dirContext.createSubcontext(groupDN, attributes);
+            dirContext.createSubcontext(getGroupRDN(groupName), attributes);
         }
         catch(NameAlreadyBoundException e) {
             throw new EntryAlreadyExistsException(
@@ -336,102 +367,202 @@ public class AccountManagerImpl implements AccountManager {
 
     /**
      * Get the account DN.
-     * 
+     *
      * @param  accountName  the account name.
-     * 
+     *
      * @return  the account DN.
-     * 
-     * @throws  AccountManagerException  if unable to get the account DN.
+     *
+     * @throws  NamingException  if unable to get the account DN.
      */
-    private static Name getAccountDN(String accountName) {
- 
-        // Declare.
-        Name accountDN;
-
-        try {
-
-            // Declare.
-            List<Rdn> accountRDNs;
-
-            // Get the account DN.
-            accountRDNs = new ArrayList<Rdn>();
-            accountRDNs.add(new Rdn("uid", accountName));
-            accountDN = new LdapName(accountRDNs);
-            accountDN.addAll(0, getContainerDN(ACCOUNTS_CONTAINER_NAME));
-        }
-        catch(NamingException e) {
-            throw new AccountManagerException(
-                    "Unable to get the account DN for " + accountName + ".", e);
-        }
-
-        return accountDN;
+    private Name getAccountDN(String accountName) throws NamingException {
+        return getAccountRDN(accountName).addAll(0, getBaseDN());
     }
 
     /**
-     * Get the container DN.
+     * Get the account names.
+     * 
+     * @param  uniqueMemberAttribute  the unique member attribute.
+     * 
+     * @return  the account names.
+     * 
+     * @throws  NamingException  if unable to get the account names.
+     */
+    private static List<String> getAccountNames(Attribute uniqueMemberAttribute) throws NamingException {
+
+        // Declare.
+        List<String> accountNames;
+
+        // Initialize.
+        accountNames = new ArrayList<String>();
+        
+        // Check if the unique member attribute exists.
+        if (uniqueMemberAttribute != null) {
+
+            // Loop through the unique member values.
+            for (int x = 0; x < uniqueMemberAttribute.size(); x++) {
+
+                // Declare.
+                LdapName accountRDN;
+
+                // Get the account RDN (unique member value).
+                accountRDN = new LdapName((String)uniqueMemberAttribute.get(x));
+
+                // Loop through RDNs for the account RDN.
+                for (Rdn rdn : accountRDN.getRdns()) {
+
+                    // Check if the RDN attribute ID is uid.
+                    if (rdn.getType().equals("uid")) {
+
+                        // Add the account name (RDN attribute value) to the list.
+                        accountNames.add((String)rdn.getValue());
+                        break;
+                    }
+                }
+            }
+        }
+
+        return accountNames;
+    }
+
+    /**
+     * Get the account RDN.
+     *
+     * @param  accountName  the account name.
+     *
+     * @return  the account RDN.
+     *
+     * @throws  NamingException  if unable to get the account RDN.
+     */
+    private static Name getAccountRDN(String accountName) throws NamingException {
+
+        // Declare.
+        Name accountRDN;
+        List<Rdn> accountRDNs;
+
+        // Get the account RDN.
+        accountRDNs = new ArrayList<Rdn>();
+        accountRDNs.add(new Rdn("uid", accountName));
+        accountRDN = new LdapName(accountRDNs);
+        accountRDN.addAll(0, getContainerRDN(ACCOUNTS_CONTAINER_NAME));
+
+        return accountRDN;
+    }
+
+    /**
+     * Get the base DN.
+     *
+     * @return  the base DN.
+     *
+     * @throws  NamingException  if unable to get the base DN.
+     */
+    private Name getBaseDN() throws NamingException {
+        return new LdapName(dirContext.getNameInNamespace());
+    }
+
+    /**
+     * Get the container RDN.
      *
      * @param  containerName  the container name.
      *
-     * @return  the container DN.
+     * @return  the container RDN.
      *
-     * @throws  AccountManagerException  if unable to get the container DN.
+     * @throws  NamingException  if unable to get the container RDN.
      */
-    private static Name getContainerDN(String containerName) {
+    private static Name getContainerRDN(String containerName) throws NamingException {
 
         // Declare.
-        Name containerDN;
+        Name containerRDN;
+        List<Rdn> containerRDNs;
 
-        try {
+        // Get the container RDN.
+        containerRDNs = new ArrayList<Rdn>();
+        containerRDNs.add(new Rdn("ou", containerName));
+        containerRDN = new LdapName(containerRDNs);
 
-            // Declare.
-            List<Rdn> containerRDNs;
-
-            // Get the container DN.
-            containerRDNs = new ArrayList<Rdn>();
-            containerRDNs.add(new Rdn("ou", containerName));
-            containerDN = new LdapName(containerRDNs);
-        }
-        catch(NamingException e) {
-            throw new AccountManagerException(
-                    "Unable to get the container DN for " + containerName + ".", e);
-        }
-
-        return containerDN;
+        return containerRDN;
     }
 
     /**
-     * Get the group DN.
+     * Get the dummy account DN.
+     * 
+     * @return  the dummy account DN.
+     * 
+     * @throws  NamingException  if unable to get the dummy account DN.
+     */
+    private Name getDummyAccountDN() throws NamingException {
+        return getAccountDN(DUMMY_ACCOUNT_NAME);
+    }
+
+    /**
+     * Get the group names.
+     *
+     * @param  memberOfAttribute  the member of attribute.
+     *
+     * @return  the group names.
+     *
+     * @throws  NamingException  if unable to get the group names.
+     */
+    private static List<String> getGroupNames(Attribute memberOfAttribute) throws NamingException {
+
+        // Declare.
+        List<String> groupNames;
+
+        // Initialize.
+        groupNames = new ArrayList<String>();
+
+        // Check if the unique member attribute exists.
+        if (memberOfAttribute != null) {
+
+            // Loop through the member of values.
+            for (int x = 0; x < memberOfAttribute.size(); x++) {
+
+                // Declare.
+                LdapName groupRDN;
+
+                // Get the group RDN (member of value).
+                groupRDN = new LdapName((String)memberOfAttribute.get(x));
+
+                // Loop through RDNs for the group RDN.
+                for (Rdn rdn : groupRDN.getRdns()) {
+
+                    // Check if the RDN attribute ID is cn.
+                    if (rdn.getType().equals("cn")) {
+
+                        // Add the group name (RDN attribute value) to the list.
+                        groupNames.add((String)rdn.getValue());
+                        break;
+                    }
+                }
+            }
+        }
+
+        return groupNames;
+    }
+
+    /**
+     * Get the group RDN.
      *
      * @param  groupName  the group name.
      *
-     * @return  the group DN.
+     * @return  the group RDN.
      *
-     * @throws  AccountManagerException  if unable to get the group DN.
+     * @throws  NamingException  if unable to get the group RDN.
      */
-    private static Name getGroupDN(String groupName) {
+    private static Name getGroupRDN(String groupName) throws NamingException {
 
         // Declare.
-        Name groupDN;
+        Name groupRDN;
+        List<Rdn> groupRDNs;
 
-        try {
+        // Get the group RDN.
+        groupRDNs = new ArrayList<Rdn>();
+        groupRDNs.add(new Rdn("cn", groupName));
+        groupRDN = new LdapName(groupRDNs);
+        groupRDN.addAll(0, getContainerRDN(GROUPS_CONTAINER_NAME));
 
-            // Declare.
-            List<Rdn> groupRDNs;
-
-            // Get the group DN.
-            groupRDNs = new ArrayList<Rdn>();
-            groupRDNs.add(new Rdn("cn", groupName));
-            groupDN = new LdapName(groupRDNs);
-            groupDN.addAll(0, getContainerDN(GROUPS_CONTAINER_NAME));
-        }
-        catch(NamingException e) {
-            throw new AccountManagerException(
-                    "Unable to get the group DN for " + groupName + ".", e);
-        }
-
-        return groupDN;
+        return groupRDN;
     }
-    
+
     /**
      * Get the groups of the account.
      *
@@ -439,11 +570,38 @@ public class AccountManagerImpl implements AccountManager {
      *
      * @return  the groups.
      *
-     * @throws  NoSuchEntryException  if the account does not exist.
-     * @throws  NullPointerException  if the account name is null.
+     * @throws  AccountManagerException  if unable to get the groups of the account.
+     * @throws  NoSuchEntryException     if the account does not exist.
+     * @throws  NullPointerException     if the account name is null.
      */
     public List<String> getGroups(String accountName) {
-        return null;
+
+        // Declare.
+        List<String> groupNames;
+
+        // Initialize.
+        groupNames = new ArrayList<String>();
+
+        checkNullAccountName(accountName);
+        checkNoSuchAccount(accountName);
+
+        try {
+
+            // Declare.
+            Attributes attributes;
+
+            // Get the member of attribute for the account.
+            attributes = dirContext.getAttributes(getAccountRDN(accountName), new String[]{"memberOf"});
+
+            // Get the group names.
+            groupNames = getGroupNames(attributes.get("memberOf"));
+        }
+        catch(NamingException e) {
+            throw new AccountManagerException(
+                    "Unable to get the groups of the account " + accountName + ".", e);
+        }
+
+        return groupNames;
     }
 
     /**
@@ -453,11 +611,67 @@ public class AccountManagerImpl implements AccountManager {
      *
      * @return  the members.
      *
-     * @throws  NoSuchEntryException  if the group does not exist.
-     * @throws  NullPointerException  if the group name is null.
+     * @throws  AccountManagerException  if unable to get the members of the group.
+     * @throws  NoSuchEntryException     if the group does not exist.
+     * @throws  NullPointerException     if the group name is null.
      */
     public List<String> getMembers(String groupName) {
-        return null;
+
+        // Declare.
+        List<String> accountNames;
+
+        // Initialize.
+        accountNames = new ArrayList<String>();
+
+        checkNullGroupName(groupName);
+        checkNoSuchGroup(groupName);
+
+        try {
+
+            // Declare.
+            Attributes attributes;
+
+            // Get the unique member attribute for the group.
+            attributes = dirContext.getAttributes(getGroupRDN(groupName), new String[]{"uniqueMember"});
+
+            // Get the account names.
+            accountNames = getAccountNames(attributes.get("uniqueMember"));
+
+            // Remove the dummy account name from the list.
+            accountNames.remove(DUMMY_ACCOUNT_NAME);
+        }
+        catch(NamingException e) {
+            throw new AccountManagerException(
+                    "Unable to get the members of the group " + groupName + ".", e);
+        }
+
+        return accountNames;
+    }
+
+    /**
+     * Get the multi-value attribute.
+     * 
+     * @param  attributeId      the attribute ID.
+     * @param  attributeValues  the attribute values.
+     * 
+     * @return  the multi-value attribute.
+     */
+    private static Attribute getMultiValueAttribute(String attributeId, String... attributeValues) {
+
+        // Declare.
+        Attribute attribute;
+
+        // Initialize.
+        attribute = new BasicAttribute(attributeId);
+
+        // Loop through the attribute values.
+        for (String attributeValue : attributeValues) {
+
+            // Add the attribute value to the attribute.
+            attribute.add(attributeValue);
+        }
+
+        return attribute;
     }
 
     /**
@@ -468,21 +682,7 @@ public class AccountManagerImpl implements AccountManager {
      * @return  the object class attribute.
      */
     private static Attribute getObjectClassAttribute(String... objectClassValues) {
-
-        // Declare.
-        Attribute objectClassAttribute;
-
-        // Initialize.
-        objectClassAttribute = new BasicAttribute("objectClass");
-
-        // Loop through the object class values.
-        for (String objectClassValue : objectClassValues) {
-
-            // Add the object class value to the attribute.
-            objectClassAttribute.add(objectClassValue);
-        }
-
-        return objectClassAttribute;
+        return getMultiValueAttribute("objectClass", objectClassValues);
     }
 
     /**
@@ -491,25 +691,36 @@ public class AccountManagerImpl implements AccountManager {
      * @param  uniqueMemberValues  the unique member values.
      *
      * @return  the unique member values.
-     *
-     * @throws  InvalidNameException  if unable to get the unique member attribute.
      */
-    private static Attribute getUniqueMemberAttribute(String... uniqueMemberValues) throws InvalidNameException {
+    private static Attribute getUniqueMemberAttribute(String... uniqueMemberValues) {
+        return getMultiValueAttribute("uniqueMember", uniqueMemberValues);
+    }
+
+    /**
+     * Get the unique member values.
+     * 
+     * @param  accountNames  the account names.
+     * 
+     * @return  the unique member values.
+     *
+     * @throws  NamingException  if unable to get the unique member values.
+     */
+    private String[] getUniqueMemberValues(List<String> accountNames) throws NamingException {
 
         // Declare.
-        Attribute uniqueMemberAttribute;
+        String[] uniqueMemberValues;
 
         // Initialize.
-        uniqueMemberAttribute = new BasicAttribute("uniqueMember");
+        uniqueMemberValues = new String[accountNames.size()];
 
-        // Loop through the unique member values.
-        for (String uniqueMemberValue : uniqueMemberValues) {
+        // Loop through the account names.
+        for (int x = 0; x < accountNames.size(); x++) {
 
-            // Add the unique member value to the attribute.
-            uniqueMemberAttribute.add(getAccountDN(uniqueMemberValue).toString());
+            // Add the unique member value to the array.
+            uniqueMemberValues[x] = getAccountDN(accountNames.get(x)).toString();
         }
 
-        return uniqueMemberAttribute;
+        return uniqueMemberValues;
     }
 
     /**
@@ -524,11 +735,22 @@ public class AccountManagerImpl implements AccountManager {
      */
     public boolean groupExists(String groupName) {
 
-        if (groupName == null) {
-            throw new NullPointerException("The account name is null.");
+        // Declare.
+        boolean groupExists;
+
+        checkNullGroupName(groupName);
+
+        try {
+        
+            // Check if the group exists.
+            groupExists = entryExists(getGroupRDN(groupName));
+        }
+        catch(NamingException e) {
+            throw new AccountManagerException(
+                    "Unable to check if the group " + groupName + " exists.", e);
         }
 
-        return this.entryExists(getGroupDN(groupName));
+        return groupExists;
     }
 
     /**
@@ -550,30 +772,21 @@ public class AccountManagerImpl implements AccountManager {
         // Initialize.
         isAccountLocked = true;
 
-        if (accountName == null) {
-            throw new NullPointerException("The account name is null.");
-        }
+        checkNullAccountName(accountName);
+        checkNoSuchAccount(accountName);
 
         try {
 
             // Declare.
             Attributes attributes;
-            Name accountDN;
-
-            // Get the account DN.
-            accountDN = getAccountDN(accountName);
 
             // Get the attributes.
-            attributes = dirContext.getAttributes(accountDN, new String[] {"pwdAccountLockedTime"});
+            attributes = dirContext.getAttributes(getAccountRDN(accountName), new String[] {"pwdAccountLockedTime"});
 
             // Check if the account is not locked.
             if (attributes.get("pwdAccountLockedTime") == null) {
                 isAccountLocked = false;
             }
-        }
-        catch(NameNotFoundException e) {
-            throw new NoSuchEntryException(
-                    accountName, "Account " + accountName + " does not exist.", e);
         }
         catch(NamingException e) {
             throw new AccountManagerException(
@@ -596,7 +809,14 @@ public class AccountManagerImpl implements AccountManager {
      * @throws  NullPointerException     if the account and/or group name is null.
      */
     public boolean isMember(String accountName, String groupName) {
-        return false;
+
+        checkNullAccountName(accountName);
+        checkNullGroupName(groupName);
+        checkNoSuchAccount(accountName);
+        checkNoSuchGroup(groupName);
+
+        // Check if the account is a member of the group.
+        return getMembers(groupName).contains(accountName);
     }
 
     /**
@@ -610,29 +830,20 @@ public class AccountManagerImpl implements AccountManager {
      */
     public void lockAccount(String accountName) {
 
-        if (accountName == null) {
-            throw new NullPointerException("The account name is null.");
-        }
+        checkNullAccountName(accountName);
+        checkNoSuchAccount(accountName);
 
         try {
 
             // Declare.
-            Name accountDN;
             Attributes attributes;
-
-            // Get the account DN.
-            accountDN = getAccountDN(accountName);
 
             // Set the attributes.
             attributes = new BasicAttributes();
             attributes.put(new BasicAttribute("pwdAccountLockedTime", ACCOUNT_LOCK_TIME));
             
             // Lock the account.
-            dirContext.modifyAttributes(accountDN, DirContext.ADD_ATTRIBUTE, attributes);
-        }
-        catch(NameNotFoundException e) {
-            throw new NoSuchEntryException(
-                    accountName, "Account " + accountName + " does not exist.", e);
+            dirContext.modifyAttributes(getAccountRDN(accountName), DirContext.ADD_ATTRIBUTE, attributes);
         }
         catch(NamingException e) {
             throw new AccountManagerException(
@@ -651,24 +862,27 @@ public class AccountManagerImpl implements AccountManager {
      */
     public void removeAccount(String accountName) {
 
-        if (accountName == null) {
-            throw new NullPointerException("The account name is null.");
-        }
+        checkNullAccountName(accountName);
+        checkNoSuchAccount(accountName);
 
         try {
 
             // Declare.
-            Name accountDN;
+            List<String> accountNames;
 
-            // Get the account DN.
-            accountDN = getAccountDN(accountName);
+            // Add this account to a list of account names.
+            accountNames = new ArrayList<String>();
+            accountNames.add(accountName);
+
+            // Loop through the group names of the account.
+            for (String groupName : getGroups(accountName)) {
+
+                // Remove this account (member) from the group.
+                removeMembers(groupName, accountNames);
+            }
 
             // Remove the account.
-            dirContext.destroySubcontext(accountDN);
-        }
-        catch(NameNotFoundException e) {
-            throw new NoSuchEntryException(
-                    accountName, "Account " + accountName + " does not exist.", e);
+            dirContext.destroySubcontext(getAccountRDN(accountName));
         }
         catch(NamingException e) {
             throw new AccountManagerException(
@@ -687,24 +901,13 @@ public class AccountManagerImpl implements AccountManager {
      */
     public void removeGroup(String groupName) {
 
-        if (groupName == null) {
-            throw new NullPointerException("The group name is null.");
-        }
+        checkNullGroupName(groupName);
+        checkNoSuchGroup(groupName);
 
         try {
 
-            // Declare.
-            Name groupDN;
-
-            // Get the group DN.
-            groupDN = getGroupDN(groupName);
-
             // Remove the group.
-            dirContext.destroySubcontext(groupDN);
-        }
-        catch(NameNotFoundException e) {
-            throw new NoSuchEntryException(
-                    groupName, "Group " + groupName + " does not exist.", e);
+            dirContext.destroySubcontext(getGroupRDN(groupName));
         }
         catch(NamingException e) {
             throw new AccountManagerException(
@@ -720,33 +923,36 @@ public class AccountManagerImpl implements AccountManager {
      *
      * @throws  AccountManagerException  if unable to remove the members from the group.
      * @throws  NoSuchEntryException     if the group does not exist.
-     * @throws  NullPointerException     if the group name is null.
+     * @throws  NullPointerException     if the group name and/or one or more of the account names is null.
      */
     public void removeMembers(String groupName, List<String> accountNames) {
 
-        if (groupName == null) {
-            throw new NullPointerException("The group name is null.");
+        checkNullGroupName(groupName);
+        checkNoSuchGroup(groupName);
+
+        // Check if the account names is null.
+        if (accountNames == null) {
+            throw new NullPointerException("The account names is null.");
+        }
+        else {
+
+            // Loop through the account names.
+            for(String accountName : accountNames) {
+                checkNullAccountName(accountName);
+            }
         }
 
         try {
 
             // Declare.
-            Name groupDN;
             Attributes attributes;
-
-            // Get the group DN.
-            groupDN = getGroupDN(groupName);
 
             // Set the attributes.
             attributes = new BasicAttributes();
-            attributes.put(getUniqueMemberAttribute(accountNames.toArray(new String[accountNames.size()])));
+            attributes.put(getUniqueMemberAttribute(getUniqueMemberValues(accountNames)));
 
             // Add members to the group.
-            dirContext.modifyAttributes(groupDN, DirContext.REMOVE_ATTRIBUTE, attributes);
-        }
-        catch(NameNotFoundException e) {
-            throw new NoSuchEntryException(
-                    groupName, "Group " + groupName + " does not exist.", e);
+            dirContext.modifyAttributes(getGroupRDN(groupName), DirContext.REMOVE_ATTRIBUTE, attributes);
         }
         catch(NamingException e) {
             throw new AccountManagerException(
@@ -774,29 +980,20 @@ public class AccountManagerImpl implements AccountManager {
      */
     public void unlockAccount(String accountName) {
 
-        if (accountName == null) {
-            throw new NullPointerException("The account name is null.");
-        }
+        checkNullAccountName(accountName);
+        checkNoSuchAccount(accountName);
         
         try {
 
             // Declare.
-            Name accountDN;
             Attributes attributes;
-
-            // Get the account DN.
-            accountDN = getAccountDN(accountName);
 
             // Set the attributes.
             attributes = new BasicAttributes();
             attributes.put(new BasicAttribute("pwdAccountLockedTime", ACCOUNT_LOCK_TIME));
 
             // Unlock the account.
-            dirContext.modifyAttributes(accountDN, DirContext.REMOVE_ATTRIBUTE, attributes);
-        }
-        catch(NameNotFoundException e) {
-            throw new NoSuchEntryException(
-                    accountName, "Account " + accountName + " does not exist.", e);
+            dirContext.modifyAttributes(getAccountRDN(accountName), DirContext.REMOVE_ATTRIBUTE, attributes);
         }
         catch(NamingException e) {
             throw new AccountManagerException(
@@ -804,24 +1001,52 @@ public class AccountManagerImpl implements AccountManager {
         }
     }
 
-    
+    /**
+     * Verify the password for the account.
+     *
+     * @param  accountName  the account name.
+     * @param  password     the password to verify.
+     *
+     * @return  true if the password is verified, otherwise false.
+     */
+    public boolean verifyPassword(String accountName, String password) {
 
-    
+        // Declare.
+        boolean verified;
+
+        verified = false;
+
+        return verified;
+    }
+
     public static void main(String[] args) throws Exception {
 
-        Hashtable env = new Hashtable();
-        env.put(Context.INITIAL_CONTEXT_FACTORY, "com.sun.jndi.ldap.LdapCtxFactory");
-        env.put(Context.SECURITY_AUTHENTICATION, "simple");
-        env.put(Context.SECURITY_CREDENTIALS, "@dm1n");
-        env.put(Context.SECURITY_PRINCIPAL, "cn=admin,dc=lazydog,dc=org");
-        env.put(Context.PROVIDER_URL, "ldap://localhost/dc=lazydog,dc=org ldap://ldap1/dc=lazydog,dc=org ldap://ldap2/dc=lazydog,dc=org");
+        // Declare.
+        AccountManagerImpl accountManager;
+        DirContext dirContext;
+        java.util.Properties env;
 
-        DirContext context = new InitialDirContext(env);
+        // Set the directory context.
+        env = new java.util.Properties();
+        env.put(javax.naming.Context.INITIAL_CONTEXT_FACTORY, "com.sun.jndi.ldap.LdapCtxFactory");
+        env.put(javax.naming.Context.SECURITY_AUTHENTICATION, "simple");
+        env.put(javax.naming.Context.SECURITY_CREDENTIALS, "@dm1n");
+        env.put(javax.naming.Context.SECURITY_PRINCIPAL, "cn=admin,dc=lazydog,dc=org");
+        env.put(javax.naming.Context.PROVIDER_URL, "ldap://localhost/dc=lazydog,dc=org ldap://ldap1/dc=lazydog,dc=org ldap://ldap2/dc=lazydog,dc=org");
+        dirContext = new javax.naming.directory.InitialDirContext(env);
 
-        AccountManagerImpl manager = new AccountManagerImpl();
-        manager.setDirContext(context);
-        //manager.removeAccount("rjrjr");
-        manager.createAccount("rjrjr", "tek.book");
-System.out.println(manager.accountExists("rjrjr"));
+        // Get the account manager.
+        accountManager = new AccountManagerImpl();
+        accountManager.setDirContext(dirContext);
+
+        accountManager.createAccount("testaccount1", "test123");
+        accountManager.createAccount("testaccount2", "test123");
+        accountManager.createGroup("testgroup1");
+        List<String> accountNames = new ArrayList<String>();
+        accountNames.add("testaccount1");
+        accountNames.add("testaccount2");
+        accountManager.addMembers("testgroup1", accountNames);
+        //accountManager.removeAccount("testaccount1");
+        //accountManager.removeAccount("testaccount2");
     }
 }
