@@ -1,4 +1,4 @@
-package org.lazydog.entry.account.manager;
+package org.lazydog.entry.spi.account.manager;
 
 import java.util.Set;
 

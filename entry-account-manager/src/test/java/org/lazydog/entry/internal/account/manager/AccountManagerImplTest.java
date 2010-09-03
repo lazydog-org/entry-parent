@@ -12,8 +12,10 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.lazydog.entry.account.manager.EntryAlreadyExistsException;
-import org.lazydog.entry.account.manager.NoSuchEntryException;
+import org.lazydog.entry.spi.account.manager.AccountManager;
+import org.lazydog.entry.spi.account.manager.AccountManagerFactory;
+import org.lazydog.entry.spi.account.manager.EntryAlreadyExistsException;
+import org.lazydog.entry.spi.account.manager.NoSuchEntryException;
 
 
 /**
@@ -23,7 +25,7 @@ import org.lazydog.entry.account.manager.NoSuchEntryException;
  */
 public class AccountManagerImplTest {
 
-    private static AccountManagerImpl accountManager;
+    private static AccountManager accountManager;
 
     @BeforeClass
     public static void initialize() throws Exception {
@@ -42,8 +44,7 @@ public class AccountManagerImplTest {
         dirContext = new InitialDirContext(env);
 
         // Get the account manager.
-        accountManager = new AccountManagerImpl();
-        accountManager.setDirContext(dirContext);
+        accountManager = AccountManagerFactory.instance().createAccountManager(dirContext);
     }
 
     @AfterClass

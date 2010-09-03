@@ -19,10 +19,10 @@ import javax.naming.Name;
 import javax.naming.NameAlreadyBoundException;
 import javax.naming.NameNotFoundException;
 import javax.naming.NamingException;
-import org.lazydog.entry.account.manager.AccountManager;
-import org.lazydog.entry.account.manager.AccountManagerException;
-import org.lazydog.entry.account.manager.EntryAlreadyExistsException;
-import org.lazydog.entry.account.manager.NoSuchEntryException;
+import org.lazydog.entry.spi.account.manager.AccountManager;
+import org.lazydog.entry.spi.account.manager.AccountManagerException;
+import org.lazydog.entry.spi.account.manager.EntryAlreadyExistsException;
+import org.lazydog.entry.spi.account.manager.NoSuchEntryException;
 
 
 /**
@@ -38,6 +38,15 @@ public class AccountManagerImpl implements AccountManager {
     private static final String DUMMY_ACCOUNT_NAME = "dummy";
     private static final String DUMMY_ACCOUNT_PASSWORD = "dummy";
     private DirContext dirContext;
+
+    /**
+     * Constructor.
+     * 
+     * @param  dirContext  the directory context.
+     */
+    public AccountManagerImpl(DirContext dirContext) {
+        this.dirContext = dirContext;
+    }
 
     /**
      * Check if the account exists.
