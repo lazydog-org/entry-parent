@@ -9,10 +9,10 @@
         <artifactId>entry-parent</artifactId>
         <version>1.0-SNAPSHOT</version>
     </parent>
-    <artifactId>entry-repository-ejb</artifactId>
+    <artifactId>entry-account-manager-ejb</artifactId>
     <!-- packaging should be ejb, but there is an unknown bug lurking here -->
     <packaging>jar</packaging>
-    <name>Entry Repository EJB</name>
+    <name>Entry Account Manager EJB</name>
     <dependencies>
         <dependency>
             <groupId>javax</groupId>
@@ -27,7 +27,7 @@
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>entry-repository</artifactId>
+            <artifactId>entry-account-manager</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>

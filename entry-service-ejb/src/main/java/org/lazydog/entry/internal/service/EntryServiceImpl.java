@@ -8,7 +8,7 @@ import javax.ejb.EJBException;
 import javax.ejb.Remote;
 import javax.ejb.Stateless;
 import javax.interceptor.Interceptors;
-import org.lazydog.entry.EntryRepository;
+import org.lazydog.entry.spi.repository.EntryRepository;
 import org.lazydog.entry.EntryService;
 import org.lazydog.entry.model.ApplicationUser;
 import org.lazydog.utilities.ejbmonitor.interceptor.EJBMonitor;

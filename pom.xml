@@ -91,6 +91,9 @@
         <module>entry-api</module>
         <module>entry-account-manager-spi</module>
         <module>entry-account-manager</module>
+        <module>entry-account-manager-ejb</module>
+        <module>entry-repository-spi</module>
+        <module>entry-repository</module>
         <module>entry-repository-ejb</module>
 	<module>entry-service-ejb</module>
 	<module>entry-ejbs-ear</module>

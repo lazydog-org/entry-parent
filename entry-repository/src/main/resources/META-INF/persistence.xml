@@ -6,16 +6,13 @@
                         http://java.sun.com/xml/ns/persistence/persistence_1_0.xsd"
     version="1.0">
         
-    <persistence-unit name="EntryPUTest" transaction-type="RESOURCE_LOCAL">
+    <persistence-unit name="EntryPU" transaction-type="JTA">
         <provider>org.eclipse.persistence.jpa.PersistenceProvider</provider>
+        <jta-data-source>jdbc/EntryPool</jta-data-source>
         <mapping-file>org/lazydog/entry/internal/repository/orm/applicationUser-orm.xml</mapping-file>
         <class>org.lazydog.entry.model.ApplicationUser</class>
         <properties>
-            <property name="javax.persistence.jdbc.driver" value="com.mysql.jdbc.Driver"/>
-            <property name="javax.persistence.jdbc.url" value="jdbc:mysql://localhost:3306/entry"/>
-            <property name="javax.persistence.jdbc.user" value="entryuser"/>
-            <property name="javax.persistence.jdbc.password" value="3ntr44s3r"/>
-            <property name="eclipselink.logging.level" value="WARNING"/>
+            <property name="eclipselink.logging.level" value="OFF"/>
         </properties>
     </persistence-unit>
 </persistence>
