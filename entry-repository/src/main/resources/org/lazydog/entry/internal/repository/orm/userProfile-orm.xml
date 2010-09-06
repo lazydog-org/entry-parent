@@ -7,16 +7,16 @@
     version="1.0">
 
     <package>org.lazydog.entry.model</package>
-    <entity class="ApplicationUser" access="FIELD" metadata-complete="true">
-        <table name="application_user" schema="entry"/>
-        <named-query name="ApplicationUser.findAll">
-            <query>select a from ApplicationUser a</query>
-        </named-query>
+    <entity class="UserProfile" access="FIELD" metadata-complete="true">
+        <table name="user_profile" schema="entry"/>
         <attributes>
             <id name="id">
                 <column name="id"/>
                 <generated-value strategy="IDENTITY"/>
             </id>
+            <basic name="activationCode">
+                <column name="activation_code"/>
+            </basic>
             <basic name="emailAddress">
                 <column name="email_address" nullable="false"/>
             </basic>
@@ -27,9 +27,10 @@
                 <column name="last_name" nullable="false"/>
             </basic>
             <basic name="modifyTime">
-                <column name="modify_time"/>
+                <column name="modify_time" nullable="false"/>
                 <temporal>TIMESTAMP</temporal>
             </basic>
+            <transient name="password"/>
             <basic name="registerTime">
                 <column name="register_time" nullable="false"/>
                 <temporal>TIMESTAMP</temporal>

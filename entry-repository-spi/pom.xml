@@ -16,7 +16,7 @@
         <dependency>
             <groupId>org.lazydog.repository</groupId>
             <artifactId>repository-api</artifactId>
-            <version>1.2</version>
+            <version>1.3</version>
         </dependency>
     </dependencies>
 </project>

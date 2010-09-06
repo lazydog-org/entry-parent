@@ -8,13 +8,14 @@
         
     <persistence-unit name="EntryPUTest" transaction-type="RESOURCE_LOCAL">
         <provider>org.eclipse.persistence.jpa.PersistenceProvider</provider>
-        <mapping-file>org/lazydog/entry/internal/repository/orm/applicationUser-orm.xml</mapping-file>
-        <class>org.lazydog.entry.model.ApplicationUser</class>
+        <mapping-file>org/lazydog/entry/internal/repository/orm/userProfile-orm.xml</mapping-file>
+        <class>org.lazydog.entry.model.UserProfile</class>
         <properties>
-            <property name="javax.persistence.jdbc.driver" value="com.mysql.jdbc.Driver"/>
-            <property name="javax.persistence.jdbc.url" value="jdbc:mysql://localhost:3306/entry"/>
+            <property name="javax.persistence.jdbc.driver" value="org.apache.derby.jdbc.EmbeddedDriver"/>
+            <property name="javax.persistence.jdbc.url" value="jdbc:derby:./target/entry;create=true"/>
             <property name="javax.persistence.jdbc.user" value="entryuser"/>
-            <property name="javax.persistence.jdbc.password" value="3ntr44s3r"/>
+            <property name="javax.persistence.jdbc.password" value="entryuser"/>
+            <property name="eclipselink.ddl-generation" value="create-tables"/>
             <property name="eclipselink.logging.level" value="WARNING"/>
         </properties>
     </persistence-unit>
