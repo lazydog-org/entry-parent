@@ -13,7 +13,10 @@ public class EntryServiceWrapper extends EntryServiceImpl {
      */
     public EntryServiceWrapper () {
 
-        // Inject the comic repository.
+        // Inject the Entry account manager.
+        this.setEntryAccountManager(new EntryAccountManagerWrapper());
+        
+        // Inject the Entry repository.
         this.setEntryRepository(new EntryRepositoryWrapper());
     }
 }

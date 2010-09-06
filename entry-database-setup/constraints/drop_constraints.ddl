@@ -1,3 +1,3 @@
-alter table entry.application_user
-    drop key application_user__username__uk,
-    drop key application_user__uuid__uk;
+alter table entry.user_profile
+    drop key user_profile__username__uk,
+    drop key user_profile__uuid__uk;

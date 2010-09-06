@@ -1,5 +1,5 @@
-alter table entry.application_user
-    add constraint application_user__username__uk 
+alter table entry.user_profile
+    add constraint user_profile__username__uk
             unique (username),
-    add constraint application_user__uuid__uk 
+    add constraint user_profile__uuid__uk
             unique (uuid);

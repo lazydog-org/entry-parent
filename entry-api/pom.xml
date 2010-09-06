@@ -19,11 +19,6 @@
             <version>4.0.2.GA</version>
         </dependency>
         <dependency>
-            <groupId>org.lazydog.repository</groupId>
-            <artifactId>repository-api</artifactId>
-            <version>1.2</version>
-        </dependency>
-        <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-log4j12</artifactId>
             <version>1.4.2</version>

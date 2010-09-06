@@ -25,6 +25,5 @@ public class EntryRepositoryWrapper extends EntryRepositoryImpl {
 
         // Inject the entity manager.
         this.setEntityManager(entityManager);
-        entityManager.clear();
     }
 }

@@ -1,6 +1,6 @@
 package org.lazydog.entry;
 
-import org.lazydog.entry.model.ApplicationUser;
+import org.lazydog.entry.model.UserProfile;
 
 
 /**
@@ -10,11 +10,15 @@ import org.lazydog.entry.model.ApplicationUser;
  */
 public interface EntryService {
 
-    public void activate(ApplicationUser applicationUser);
+    public boolean activate(String username, String activationCode);
 
-    public void deactivate(ApplicationUser applicationUser);
+    public boolean deactivate(String username);
 
-    public ApplicationUser find(String username);
+    public UserProfile getUserProfile(String username);
 
-    public void register(ApplicationUser applicationUser);
+    public void modify(UserProfile userProfile);
+    
+    public boolean register(UserProfile userProfile);
+
+    public boolean unregister(String username);
 }

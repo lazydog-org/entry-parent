@@ -1,16 +1,17 @@
 package org.lazydog.entry.internal.service;
 
 import java.util.Date;
-import java.util.List;
 import java.util.UUID;
 import javax.ejb.EJB;
-import javax.ejb.EJBException;
 import javax.ejb.Remote;
 import javax.ejb.Stateless;
 import javax.interceptor.Interceptors;
+import org.lazydog.entry.spi.account.manager.EntryAccountManager;
 import org.lazydog.entry.spi.repository.EntryRepository;
 import org.lazydog.entry.EntryService;
-import org.lazydog.entry.model.ApplicationUser;
+import org.lazydog.entry.model.UserProfile;
+import org.lazydog.repository.Criteria;
+import org.lazydog.repository.criterion.ComparisonOperation;
 import org.lazydog.utilities.ejbmonitor.interceptor.EJBMonitor;
 
 
@@ -22,52 +23,177 @@ import org.lazydog.utilities.ejbmonitor.interceptor.EJBMonitor;
 @Stateless(name="ejb/EntryService")
 @Remote(EntryService.class)
 @Interceptors(EJBMonitor.class)
-public class EntryServiceImpl
-       implements EntryService {
+public class EntryServiceImpl implements EntryService {
 
     @EJB(beanName="ejb/EntryRepository", beanInterface=EntryRepository.class)
     private EntryRepository entryRepository;
 
-    @Override
-    public void activate(ApplicationUser applicationUser) {
-    }
+    @EJB(beanName="ejb/EntryAccountManager", beanInterface=EntryAccountManager.class)
+    private EntryAccountManager entryAccountManager;
 
+    /**
+     * Activate the user profile for the specified username using the
+     * specified activate code.
+     *
+     * @param  username        the username.
+     * @param  activationCode  the activation code.
+     *
+     * @return  true if the user profile is activated, otherwise false.
+     */
     @Override
-    public void deactivate(ApplicationUser applicationUser) {
-    }
+    public boolean activate(String username, String activationCode) {
 
-    @Override
-    public ApplicationUser find(String username) {
-        return null;
+        // Declare.
+        UserProfile userProfile;
+
+        // Get the user profile for username.
+        userProfile = getUserProfile(username);
+
+        // Check if the supplied activation code is correct.
+        if (activationCode.equals(userProfile.getActivationCode())) {
+
+            // Unlock the user account.
+            entryAccountManager.unlockAccount(username);
+        }
+
+        return !entryAccountManager.isAccountLocked(username);
     }
 
     /**
-     * Register the application user.
+     * Deactivate the user profile for the specified username.
      *
-     * @param  applicationUser  the application user.
+     * @param  username  the username.
+     *
+     * @return  true if the user profile is deactivated, otherwise false.
      */
     @Override
-    public void register(ApplicationUser applicationUser) {
+    public boolean deactivate(String username) {
 
-        // Set the register time, modify time, and UUID for the application user.
-        applicationUser.setRegisterTime(new Date());
-        applicationUser.setModifyTime(applicationUser.getRegisterTime());
-        applicationUser.setUuid(UUID.randomUUID().toString());
+        // Lock the user account.
+        entryAccountManager.lockAccount(username);
 
-        // Check if the application user is valid.
-        if (applicationUser.isValid()) {
+        return entryAccountManager.isAccountLocked(username);
+    }
 
-            // Persist the application user.
-            entryRepository.persist(applicationUser);
+    /**
+     * Get the user profile for the specified username.
+     *
+     * @param  username  the username.
+     *
+     * @return  the user profile.
+     */
+    @Override
+    public UserProfile getUserProfile(String username) {
+
+        // Declare.
+        Criteria<UserProfile> criteria;
+        UserProfile userProfile;
+
+        // Get the user profile for username.
+        criteria = entryRepository.getCriteria(UserProfile.class);
+        criteria.add(ComparisonOperation.eq("username", username));
+        userProfile = entryRepository.find(UserProfile.class, criteria);
+
+        return userProfile;
+    }
+
+    /**
+     * Modify the user profile.
+     *
+     * @param  userProfile  the user profile.
+     */
+    @Override
+    public void modify(UserProfile userProfile) {
+
+        // Set the modify time.
+        userProfile.setModifyTime(new Date());
+
+        // Persist the user profile.
+        entryRepository.persist(userProfile);
+
+        // Check if the password exists.
+        if (userProfile.getPassword() != null) {
+
+            // Change the user account password.
+            entryAccountManager.changePassword(userProfile.getUsername(), userProfile.getPassword());
         }
     }
 
     /**
-     * Set the entry repository.
+     * Generate a UUID.
+     * 
+     * @return  the generated UUID.
+     */
+    private static String generateUuid() {
+        return UUID.randomUUID().toString();
+    }
+
+    /**
+     * Register the user profile.
      *
-     * @param  entryRepository  the entry repository.
+     * @param  userProfile  the user profile.
+     * @param  password     the password.
+     */
+    @Override
+    public boolean register(UserProfile userProfile) {
+
+        // Set the register time, modify time, activation code, 
+        // and UUID for the user profile.
+        userProfile.setRegisterTime(new Date());
+        userProfile.setModifyTime(userProfile.getRegisterTime());
+        userProfile.setActivationCode(generateUuid());
+        userProfile.setUuid(generateUuid());
+
+        // Persist the user profile.
+        entryRepository.persist(userProfile);
+
+        // Create the user account.
+        entryAccountManager.createAccount(userProfile.getUsername(), userProfile.getPassword());
+
+        // Lock the user account.
+        entryAccountManager.lockAccount(userProfile.getUsername());
+
+        return entryAccountManager.accountExists(userProfile.getUsername());
+    }
+
+    /**
+     * Set the Entry account manager.
+     *
+     * @param  entryAccountManager  the Entry account manager.
+     */
+    public void setEntryAccountManager(EntryAccountManager entryAccountManager) {
+        this.entryAccountManager = entryAccountManager;
+    }
+
+    /**
+     * Set the Entry repository.
+     *
+     * @param  entryRepository  the Entry repository.
      */
     public void setEntryRepository(EntryRepository entryRepository) {
         this.entryRepository = entryRepository;
+    }
+
+    /**
+     * Unregister the user profile.
+     *
+     * @param  id  the ID.
+     */
+    @Override
+    public boolean unregister(String username) {
+
+        // Declare.
+        UserProfile userProfile;
+
+        // Get the user profile for username.
+        userProfile = getUserProfile(username);
+
+        // Remove the user profile.
+        entryRepository.remove(userProfile);
+
+        // Remove the user account.
+        entryAccountManager.removeAccount(userProfile.getUsername());
+
+        return !entryAccountManager.accountExists(userProfile.getUsername());
     }
 }

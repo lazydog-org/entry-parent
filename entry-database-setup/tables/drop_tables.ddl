@@ -1,1 +1,1 @@
-drop table entry.application_user;
+drop table entry.user_profile;

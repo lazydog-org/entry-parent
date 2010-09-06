@@ -13,18 +13,16 @@ import javax.validation.ValidatorFactory;
 
 
 /**
- * Entity class used to represent an application user.
+ * Entity class used to represent a user profile.
  *
  * @author  Ron Rickard
  */
-public class ApplicationUser 
-       implements Comparable<ApplicationUser>,
-                  Serializable {
+public class UserProfile implements Comparable<UserProfile>, Serializable {
     
     private static final long serialVersionUID = 1L;
+    private String activationCode;
     @NotNull(message="Email address is required.")
     @Size(max=50, message="Email address cannot contain more than 50 characters.")
-    @Pattern(regexp="")
     private String emailAddress;
     @NotNull(message="First name is required.")
     @Size(max=50, message="First name cannot contain more than 50 characters.")
@@ -35,11 +33,13 @@ public class ApplicationUser
     private String lastName;
     @NotNull(message="Modify time is required.")
     private Date modifyTime;
+    private String password;
     @NotNull(message="Register time is required.")
     private Date registerTime;
     @NotNull(message="Username is required.")
     @Size(max=50, message="Username cannot contain more than 50 characters.")
     private String username;
+    @NotNull(message="UUID is required.")
     private String uuid;
 
     /**
@@ -53,7 +53,7 @@ public class ApplicationUser
      *          object.
      */
     @Override
-    public int compareTo(ApplicationUser that) {
+    public int compareTo(UserProfile that) {
         
         // Declare.
         int lastCompare;
@@ -76,13 +76,14 @@ public class ApplicationUser
      *
      * @return  a copy of this object.
      */
-    public ApplicationUser copy() {
+    public UserProfile copy() {
         
         // Declare.
-        ApplicationUser copy;
+        UserProfile copy;
         
         // Create a copy.
-        copy = new ApplicationUser();
+        copy = new UserProfile();
+        copy.setActivationCode(this.getActivationCode());
         copy.setEmailAddress(this.getEmailAddress());
         copy.setFirstName(this.getFirstName());
         copy.setId(this.getId());
@@ -113,12 +114,21 @@ public class ApplicationUser
         
         // Check if the object is an instance of this class
         // and is equal to this object.
-        if (object instanceof ApplicationUser &&
-            this.compareTo((ApplicationUser)object) == 0) {
+        if (object instanceof UserProfile &&
+            this.compareTo((UserProfile)object) == 0) {
             equals = true;
         }
         
         return equals;
+    }
+
+    /**
+     * Get the activation code.
+     * 
+     * @return  the activation code.
+     */
+    public String getActivationCode() {
+        return this.activationCode;
     }
 
     /**
@@ -164,6 +174,15 @@ public class ApplicationUser
      */
     public Date getModifyTime() {
         return this.modifyTime;
+    }
+
+    /**
+     * Get the password.
+     * 
+     * @return  the password.
+     */
+    public String getPassword() {
+        return this.password;
     }
 
     /**
@@ -231,7 +250,7 @@ public class ApplicationUser
      *
      * @throws  IllegalArgumentException  if the replacement object is null.
      */
-    protected static <U, V extends U> U replaceNull(U original, V replacement) {
+    private static <U, V extends U> U replaceNull(U original, V replacement) {
 
         // Check if the replacement object is null.
         if (replacement == null) {
@@ -240,6 +259,15 @@ public class ApplicationUser
         }
 
         return (original == null) ? replacement : original;
+    }
+
+    /**
+     * Set the activation code.
+     *
+     * @param  activationCode  the activation code.
+     */
+    public void setActivationCode(String activationCode) {
+        this.activationCode = activationCode;
     }
 
     /**
@@ -288,6 +316,15 @@ public class ApplicationUser
     }
 
     /**
+     * Set the password.
+     *
+     * @param  password  the password.
+     */
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    /**
      * Set the register time.
      *
      * @param  registerTime  the register time.
@@ -329,14 +366,15 @@ public class ApplicationUser
         toString = new StringBuffer();
         
         toString.append("ApplicationUser [");
-        toString.append("emailAddress = ").append(this.getEmailAddress());
-        toString.append("firstName = ").append(this.getFirstName());
-        toString.append("id = ").append(this.getId());
-        toString.append("lastName = ").append(this.getLastName());
-        toString.append("modifyTime = ").append(this.getModifyTime());
-        toString.append("registerTime = ").append(this.getRegisterTime());
-        toString.append("username = ").append(this.getUsername());
-        toString.append("uuid = ").append(this.getUuid());
+        toString.append("activationCode = ").append(this.getActivationCode());
+        toString.append(", emailAddress = ").append(this.getEmailAddress());
+        toString.append(", firstName = ").append(this.getFirstName());
+        toString.append(", id = ").append(this.getId());
+        toString.append(", lastName = ").append(this.getLastName());
+        toString.append(", modifyTime = ").append(this.getModifyTime());
+        toString.append(", registerTime = ").append(this.getRegisterTime());
+        toString.append(", username = ").append(this.getUsername());
+        toString.append(", uuid = ").append(this.getUuid());
         toString.append("]");
         
         return toString.toString();
@@ -359,10 +397,10 @@ public class ApplicationUser
      * @return  a set of constraint violations or an empty set if there are no
      *          constraint violations.
      */
-    public Set<ConstraintViolation<ApplicationUser>> validate() {
+    public Set<ConstraintViolation<UserProfile>> validate() {
 
         // Declare.
-        Set<ConstraintViolation<ApplicationUser>> constraintViolations;
+        Set<ConstraintViolation<UserProfile>> constraintViolations;
         Validator validator;
         ValidatorFactory validatorFactory;
 
