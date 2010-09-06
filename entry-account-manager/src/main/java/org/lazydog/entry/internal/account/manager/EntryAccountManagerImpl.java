@@ -1061,7 +1061,7 @@ public class EntryAccountManagerImpl implements EntryAccountManager {
      *
      * @throws  AccountManagerException  if unable to set the environment.
      */
-    public void setEnvironment(Properties environment) {
+    protected void setEnvironment(Properties environment) {
 
         // Check if the environment exists.
         if (environment == null ||
