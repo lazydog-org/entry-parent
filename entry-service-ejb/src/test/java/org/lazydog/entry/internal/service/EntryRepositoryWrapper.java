@@ -26,4 +26,14 @@ public class EntryRepositoryWrapper extends EntryRepositoryImpl {
         // Inject the entity manager.
         this.setEntityManager(entityManager);
     }
+
+    /**
+     * Get the entity manager.
+     *
+     * @return  the entity manager.
+     */
+    @Override
+    public EntityManager getEntityManager() {
+        return super.getEntityManager();
+    }
 }

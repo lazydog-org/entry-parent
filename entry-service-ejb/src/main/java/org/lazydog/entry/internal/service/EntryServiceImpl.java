@@ -76,6 +76,15 @@ public class EntryServiceImpl implements EntryService {
     }
 
     /**
+     * Get the entry repository.
+     * 
+     * @return  the entry repository.
+     */
+    protected EntryRepository getEntryRepository() {
+        return this.entryRepository;
+    }
+
+    /**
      * Get the user profile for the specified username.
      *
      * @param  username  the username.
@@ -161,7 +170,7 @@ public class EntryServiceImpl implements EntryService {
      *
      * @param  entryAccountManager  the Entry account manager.
      */
-    public void setEntryAccountManager(EntryAccountManager entryAccountManager) {
+    protected void setEntryAccountManager(EntryAccountManager entryAccountManager) {
         this.entryAccountManager = entryAccountManager;
     }
 
@@ -170,7 +179,7 @@ public class EntryServiceImpl implements EntryService {
      *
      * @param  entryRepository  the Entry repository.
      */
-    public void setEntryRepository(EntryRepository entryRepository) {
+    protected void setEntryRepository(EntryRepository entryRepository) {
         this.entryRepository = entryRepository;
     }
 
@@ -189,7 +198,7 @@ public class EntryServiceImpl implements EntryService {
         userProfile = getUserProfile(username);
 
         // Remove the user profile.
-        entryRepository.remove(userProfile);
+        entryRepository.remove(UserProfile.class, userProfile.getId());
 
         // Remove the user account.
         entryAccountManager.removeAccount(userProfile.getUsername());

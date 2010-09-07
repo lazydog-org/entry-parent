@@ -18,29 +18,46 @@ import org.junit.Test;
 public class EntryServiceImplTest {
 
     private static EntryService service;
+    private static UserProfile userProfile;
 
     @BeforeClass
     public static void initialize() {
 
+        // Ensure the derby.log file is in the target directory.
+        System.setProperty("derby.system.home", "./target");
+        
         // Get the entry service.
         service = new EntryServiceWrapper();
+
+        // Get the user profile.
+        userProfile = new UserProfile();
+        userProfile.setEmailAddress("testaccount1@test.com");
+        userProfile.setFirstName("Test");
+        userProfile.setLastName("Account1");
+        userProfile.setPassword("test123");
+        userProfile.setUsername("testaccount1");
     }
 
     @AfterClass
-    @Ignore
     public static void destroy() {
-
         try {
-            service.unregister("testaccount1");
+            if (service.getUserProfile(userProfile.getUsername()) != null) {
+                ((EntryRepositoryWrapper)((EntryServiceWrapper)service).getEntryRepository()).getEntityManager().getTransaction().begin();
+                service.unregister(userProfile.getUsername());
+                ((EntryRepositoryWrapper)((EntryServiceWrapper)service).getEntryRepository()).getEntityManager().getTransaction().commit();
+            }
         }
         catch(Exception e) {}
     }
 
     @Before
     public void beforeTest() {
-
         try {
-            service.unregister("testaccount1");
+            if (service.getUserProfile(userProfile.getUsername()) != null) {
+                ((EntryRepositoryWrapper)((EntryServiceWrapper)service).getEntryRepository()).getEntityManager().getTransaction().begin();
+                service.unregister(userProfile.getUsername());
+                ((EntryRepositoryWrapper)((EntryServiceWrapper)service).getEntryRepository()).getEntityManager().getTransaction().commit();
+            }
         }
         catch(Exception e) {}
     }
@@ -54,31 +71,31 @@ public class EntryServiceImplTest {
     public void deactivate() {
 
     }
-
-    @Test
+    
+    //@Test
     public void getUserProfile() {
-
+        register();
+        ((EntryRepositoryWrapper)((EntryServiceWrapper)service).getEntryRepository()).getEntityManager().getTransaction().begin();
+        assertEquals(userProfile, service.getUserProfile(userProfile.getUsername()));
+        ((EntryRepositoryWrapper)((EntryServiceWrapper)service).getEntryRepository()).getEntityManager().getTransaction().commit();
     }
 
     @Test
     public void modify() {
-
     }
 
     @Test
     public void register() {
-        UserProfile userProfile = new UserProfile();
-        userProfile.setEmailAddress("testaccount1@test.com");
-        userProfile.setFirstName("Test");
-        userProfile.setLastName("Account1");
-        userProfile.setPassword("test123");
-        userProfile.setUsername("testaccount1");
-
+        ((EntryRepositoryWrapper)((EntryServiceWrapper)service).getEntryRepository()).getEntityManager().getTransaction().begin();
         assertTrue(service.register(userProfile));
+        ((EntryRepositoryWrapper)((EntryServiceWrapper)service).getEntryRepository()).getEntityManager().getTransaction().commit();
     }
 
     @Test
     public void unregister() {
-
+        register();
+        ((EntryRepositoryWrapper)((EntryServiceWrapper)service).getEntryRepository()).getEntityManager().getTransaction().begin();
+        assertTrue(service.unregister(userProfile.getUsername()));
+        ((EntryRepositoryWrapper)((EntryServiceWrapper)service).getEntryRepository()).getEntityManager().getTransaction().commit();
     }
 }
