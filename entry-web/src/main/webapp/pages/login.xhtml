@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:c="http://java.sun.com/jsp/jstl/core"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:h="http://java.sun.com/jsf/html">
+    <h:head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+        <title>Login</title>
+    </h:head>
+    <h:body>
+        <c:choose>
+            <c:when test="#{!empty param['username']}">
+                Your username and/or password are not valid.
+                <f:verbatim>&amp;nbsp;&amp;nbsp;</f:verbatim>
+                Please try again.
+            </c:when>
+            <c:otherwise>
+                <f:verbatim>&amp;nbsp;</f:verbatim>
+            </c:otherwise>
+        </c:choose>
+        <form action="entry-login" method="post">
+            <fieldset>
+                <ol>
+                    <li>
+                        <label for="username">User Name: </label>
+                        <h:inputText id="username"
+                                     value="#{param['username']}"
+                                     size="25"
+                                     maxlength="50"/>
+                    </li>
+                    <li>
+                        <label for="password">Password: </label>
+                        <h:inputSecret id="password"
+                                       size="25"
+                                       maxlength="50"/>
+                    </li>
+                </ol>
+            </fieldset>
+            <h:inputHidden id="returnURL"
+                           value="#{param['returnURL']}"/>
+            <h:commandButton value="Login"/>
+        </form>
+    </h:body>
+</html>

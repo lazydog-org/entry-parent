@@ -97,5 +97,8 @@
         <module>entry-repository-ejb</module>
 	<module>entry-service-ejb</module>
 	<module>entry-ejbs-ear</module>
+        <module>entry-web</module>
+        <module>entry-ear</module>
+        <module>entry-auth-module</module>
   </modules>
 </project>
