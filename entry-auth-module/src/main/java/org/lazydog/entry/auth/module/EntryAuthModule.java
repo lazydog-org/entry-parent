@@ -34,10 +34,15 @@ public class EntryAuthModule implements ServerAuthModule {
     };
     private static final String AUTH_TYPE = "EntryAuthModule";
     private static final String AUTH_TYPE_KEY = "javax.servlet.http.authType";
+    private static final String DEFAULT_LOGIN_URL = "/entry/pages/login.jsf";
     private static final String GROUPS_KEY = "org.lazydog.entry.auth.module.groups";
     private static final String LOGIN_ACTION = "/entry-login";
-    private static final String LOGIN_PAGE = "/entry/pages/login.jsf";
+    private static final String LOGIN_URL_PARAMETER = "loginURL";
+    private static final String LOGOUT_ACTION = "/entry-logout";
+    private static final String LOGOUT_URL_PARAMETER = "logoutURL";
     private static final String PASSWORD_PARAMETER = "password";
+    private static final String RETRY_KEY = "org.lazydog.entry.auth.module.retry";
+    private static final String RETURN_URL_KEY = "org.lazydog.entry.auth.module.returnURL";
     private static final String RETURN_URL_PARAMETER = "returnURL";
     private static final String USERNAME_KEY = "org.lazydog.entry.auth.module.username";
     private static final String USERNAME_PARAMETER = "username";
@@ -82,15 +87,14 @@ public class EntryAuthModule implements ServerAuthModule {
 
                     groups = new ArrayList<String>();
 
-                    setUsername(request, username);
-
                     for (Principal principal : passwordValidationCallback.getSubject().getPrincipals()) {
                         if (!principal.getName().equals(username)) {
                             groups.add(principal.getName());
                         }
                     }
 
-                    setGroups(request, groups.toArray(new String[groups.size()]));
+                    request.getSession().setAttribute(USERNAME_KEY, username);
+                    request.getSession().setAttribute(GROUPS_KEY, groups.toArray(new String[groups.size()]));
                 }
             }
         }
@@ -133,21 +137,18 @@ public class EntryAuthModule implements ServerAuthModule {
         }
     }
 
-    private static boolean exists(String value) {
-        return (value != null && !value.isEmpty());
+    private void clearSession(HttpServletRequest request) {
+        request.getSession().removeAttribute(USERNAME_KEY);
+        request.getSession().removeAttribute(GROUPS_KEY);
     }
 
-    private static String[] getGroups(HttpServletRequest request) {
-        return (String[])request.getSession().getAttribute(GROUPS_KEY);
+    private static boolean exists(String value) {
+        return (value != null && !value.isEmpty());
     }
 
     @Override
     public Class[] getSupportedMessageTypes() {
         return supportedMessageTypes;
-    }
-
-    private static String getUsername(HttpServletRequest request) {
-        return (String)request.getSession().getAttribute(USERNAME_KEY);
     }
 
     @Override
@@ -161,11 +162,11 @@ public class EntryAuthModule implements ServerAuthModule {
     }
 
     private boolean isAuthenticated(HttpServletRequest request) {
-        return (getUsername(request) != null);
+        return (request.getSession().getAttribute(GROUPS_KEY) != null);
     }
 
-    private boolean isRequestLoginAction(HttpServletRequest request) {
-        return (request.getRequestURI().endsWith(LOGIN_ACTION));
+    private boolean isRequestAction(HttpServletRequest request, String action) {
+        return (request.getRequestURI().endsWith(action));
     }
 
     private void redirectTo(HttpServletResponse response, String redirectURL) throws AuthException {
@@ -186,23 +187,24 @@ public class EntryAuthModule implements ServerAuthModule {
         }
     }
 
-    private void respondWithLoginForm(HttpServletRequest request, HttpServletResponse response, boolean again) throws AuthException {
+    private void respondWithLoginForm(HttpServletRequest request, HttpServletResponse response) throws AuthException {
 
         // Declare.
-        StringBuffer returnURLQueryString;
+        String loginURL;
 
-        returnURLQueryString = new StringBuffer();
-        returnURLQueryString
-                .append("?")
-                .append(USERNAME_PARAMETER)
-                .append("=")
-                .append((again) ? request.getParameter(USERNAME_PARAMETER) : "")
-                .append("&")
-                .append(RETURN_URL_PARAMETER)
-                .append("=")
-                .append((again) ? request.getParameter(RETURN_URL_PARAMETER) : request.getRequestURI());
+        loginURL = request.getParameter(LOGIN_URL_PARAMETER);
 
-        redirectTo(response, LOGIN_PAGE + returnURLQueryString.toString());
+        if (loginURL == null) {
+            request.getSession().setAttribute(RETURN_URL_KEY, request.getRequestURI());
+            loginURL = DEFAULT_LOGIN_URL;
+        }
+        else {
+            request.getSession().setAttribute(RETRY_KEY, "true");
+            request.getSession().setAttribute(RETURN_URL_KEY, request.getParameter(RETURN_URL_PARAMETER));
+            request.getSession().setAttribute(USERNAME_KEY, request.getParameter(USERNAME_PARAMETER));
+        }
+
+        redirectTo(response, loginURL);
     }
 
     private void respondWithReturnURL(HttpServletRequest request, HttpServletResponse response) throws AuthException {
@@ -212,16 +214,23 @@ public class EntryAuthModule implements ServerAuthModule {
 
             returnURL = request.getParameter(RETURN_URL_PARAMETER);
 
+            if (returnURL == null) {
+                returnURL = request.getParameter(LOGIN_URL_PARAMETER);
+
+                if (returnURL == null) {
+                    returnURL = request.getParameter(LOGOUT_URL_PARAMETER);
+                }
+            }
+
+            request.getSession().removeAttribute(RETRY_KEY);
+            request.getSession().removeAttribute(RETURN_URL_KEY);
+
             redirectTo(response, returnURL);
     }
 
     @Override
     public AuthStatus secureResponse(MessageInfo messageInfo, Subject subject) throws AuthException {
         return AuthStatus.SEND_SUCCESS;
-    }
-
-    private static void setGroups(HttpServletRequest request, String[] groups) {
-        request.getSession().setAttribute(GROUPS_KEY, groups);
     }
 
     private void setPrincipals(HttpServletRequest request, Subject subject) throws AuthException {
@@ -234,8 +243,8 @@ public class EntryAuthModule implements ServerAuthModule {
             String[] groups;
             String username;
 
-            groups = getGroups(request);
-            username = getUsername(request);
+            groups = (String[])request.getSession().getAttribute(GROUPS_KEY);
+            username = (String)request.getSession().getAttribute(USERNAME_KEY);
 
             callerPrincipalCallback = new CallerPrincipalCallback(subject, username);
             groupPrincipalCallback = new GroupPrincipalCallback(subject, groups);
@@ -249,12 +258,6 @@ public class EntryAuthModule implements ServerAuthModule {
             throw authException;
         }
     }
-
-    private static void setUsername(HttpServletRequest request, String username) {
-        request.getSession().setAttribute(USERNAME_KEY, username);
-    }
-
-
 
     @Override
     public AuthStatus validateRequest(MessageInfo messageInfo, Subject clientSubject,
@@ -276,17 +279,21 @@ System.err.println("request authType = " + request.getAuthType());
 System.err.println("request requestURI = " + request.getRequestURI());
 System.err.println("request parameter username = " + request.getParameter(USERNAME_PARAMETER));
 System.err.println("request parameter password = " + request.getParameter(PASSWORD_PARAMETER));
+System.err.println("request parameter loginURL = " + request.getParameter(LOGIN_URL_PARAMETER));
 System.err.println("request parameter returnURL = " + request.getParameter(RETURN_URL_PARAMETER));
-System.err.println("session attribute returnURL = " + request.getSession().getAttribute("returnURL"));
 
-        if (isRequestLoginAction(request)) {
+        if (isRequestAction(request, LOGIN_ACTION)) {
 
             if (authenticate(request, clientSubject)) {
                 respondWithReturnURL(request, response);
             }
             else {
-                respondWithLoginForm(request, response, true);
+                respondWithLoginForm(request, response);
             }
+        }
+        else if (isRequestAction(request, LOGOUT_ACTION)) {
+            clearSession(request);
+            respondWithReturnURL(request, response);
         }
         else {
 
@@ -302,8 +309,7 @@ System.err.println("session attribute returnURL = " + request.getSession().getAt
 
                 if (this.requestPolicy.isMandatory()) {
 System.err.println("mandatory");
-                    respondWithLoginForm(request, response, false);
-request.getSession().setAttribute("returnURL", request.getRequestURI());
+                    respondWithLoginForm(request, response);
                 }
                 else {
 System.err.println("not mandatory");

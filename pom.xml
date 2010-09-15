@@ -100,5 +100,6 @@
         <module>entry-web</module>
         <module>entry-ear</module>
         <module>entry-auth-module</module>
+        <module>entry-faces-ui</module>
   </modules>
 </project>

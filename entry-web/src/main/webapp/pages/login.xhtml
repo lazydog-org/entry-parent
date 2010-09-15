@@ -10,10 +10,8 @@
     </h:head>
     <h:body>
         <c:choose>
-            <c:when test="#{!empty param['username']}">
-                Your username and/or password are not valid.
-                <f:verbatim>&amp;nbsp;&amp;nbsp;</f:verbatim>
-                Please try again.
+            <c:when test="#{!empty sessionScope['org.lazydog.entry.auth.module.retry']}">
+                Your username/password is not valid.  Please try again.
             </c:when>
             <c:otherwise>
                 <f:verbatim>&amp;nbsp;</f:verbatim>
@@ -25,7 +23,7 @@
                     <li>
                         <label for="username">User Name: </label>
                         <h:inputText id="username"
-                                     value="#{param['username']}"
+                                     value="#{sessionScope['org.lazydog.entry.auth.module.username']}"
                                      size="25"
                                      maxlength="50"/>
                     </li>
@@ -37,8 +35,10 @@
                     </li>
                 </ol>
             </fieldset>
+            <h:inputHidden id="loginURL"
+                           value="#{request.requestURI}"/>
             <h:inputHidden id="returnURL"
-                           value="#{param['returnURL']}"/>
+                           value="#{sessionScope['org.lazydog.entry.auth.module.returnURL']}"/>
             <h:commandButton value="Login"/>
         </form>
     </h:body>
