@@ -8,47 +8,49 @@
         <title>Registration</title>
     </h:head>
     <h:body>
+        Register an account
         <h:form>
             <fieldset>
                 <ul>
                     <li>
                         <label for="firstName">First Name: </label>
                         <h:inputText id="firstName"
-                                     value="#{registrationMB.userProfile.firstName}"
+                                     value="#{registrationBean.userProfile.firstName}"
                                      size="25"
                                      maxlength="50"/>
                     </li>
                     <li>
                         <label for="lastName">Last Name: </label>
                         <h:inputText id="lastName"
-                                     value="#{registrationMB.userProfile.lastName}"
+                                     value="#{registrationBean.userProfile.lastName}"
                                      size="25"
                                      maxlength="50"/>
                     </li>
                     <li>
                         <label for="emailAddress">Email Address: </label>
                         <h:inputText id="emailAddress"
-                                     value="#{registrationMB.userProfile.emailAddress}"
+                                     value="#{registrationBean.userProfile.emailAddress}"
                                      size="25"
                                      maxlength="50"/>
                     </li>
                     <li>
                         <label for="username">Username: </label>
                         <h:inputText id="username"
-                                     value="#{registrationMB.userProfile.username}"
+                                     value="#{registrationBean.userProfile.username}"
                                      size="25"
                                      maxlength="50"/>
                     </li>
                     <li>
                         <label for="password">Password: </label>
                         <h:inputSecret id="password"
-                                       value="#{registrationMB.userProfile.password}"
+                                       value="#{registrationBean.userProfile.password}"
                                        size="25"
                                        maxlength="50"/>
                     </li>
                 </ul>
             </fieldset>
-            <h:commandButton value="Register"/>
+            <h:commandButton value="Register"
+                             action="#{registrationBean.register}"/>
         </h:form>
     </h:body>
 </html>
