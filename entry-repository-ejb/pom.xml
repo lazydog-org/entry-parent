@@ -10,8 +10,7 @@
         <version>1.0-SNAPSHOT</version>
     </parent>
     <artifactId>entry-repository-ejb</artifactId>
-    <!-- packaging should be ejb, but there is an unknown bug lurking here -->
-    <packaging>jar</packaging>
+    <packaging>ejb</packaging>
     <name>Entry Repository EJB</name>
     <dependencies>
         <dependency>

@@ -3,8 +3,8 @@ package org.lazydog.entry.internal.service;
 import java.util.Date;
 import java.util.UUID;
 import javax.ejb.EJB;
-import javax.ejb.Remote;
-import javax.ejb.Stateless;
+import javax.ejb.Local;
+import javax.ejb.Singleton;
 import javax.interceptor.Interceptors;
 import org.lazydog.entry.spi.account.manager.EntryAccountManager;
 import org.lazydog.entry.spi.repository.EntryRepository;
@@ -20,8 +20,8 @@ import org.lazydog.utilities.ejbmonitor.interceptor.EJBMonitor;
  * 
  * @author  Ron Rickard
  */
-@Stateless(name="ejb/EntryService")
-@Remote(EntryService.class)
+@Singleton(name="ejb/EntryService")
+@Local(EntryService.class)
 @Interceptors(EJBMonitor.class)
 public class EntryServiceImpl implements EntryService {
 

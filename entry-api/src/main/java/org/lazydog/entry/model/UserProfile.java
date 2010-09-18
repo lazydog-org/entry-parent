@@ -3,6 +3,7 @@ package org.lazydog.entry.model;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.Set;
+import java.util.UUID;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
@@ -123,6 +124,15 @@ public class UserProfile implements Comparable<UserProfile>, Serializable {
     }
 
     /**
+     * Generate a UUID.
+     *
+     * @return  the generated UUID.
+     */
+    private static String generateUuid() {
+        return UUID.randomUUID().toString();
+    }
+
+    /**
      * Get the activation code.
      * 
      * @return  the activation code.
@@ -236,6 +246,24 @@ public class UserProfile implements Comparable<UserProfile>, Serializable {
      */
     public boolean isValid() {
         return (this.validate().isEmpty()) ? true : false;
+    }
+
+    /**
+     * Create a new instance of this object.
+     * 
+     * @return  a new instance of this object.
+     */
+    public static UserProfile newInstance() {
+
+        // Declare.
+        UserProfile userProfile;
+
+        // Create a new instance.
+        userProfile = new UserProfile();
+        userProfile.setActivationCode(generateUuid());
+        userProfile.setUuid(generateUuid());
+
+        return userProfile;
     }
 
     /**
