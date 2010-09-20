@@ -16,7 +16,7 @@
     </context-param>
     <context-param>
         <param-name>jmxHost</param-name>
-        <param-value>endor</param-value>
+        <param-value>localhost</param-value>
     </context-param>
     <context-param>
         <param-name>jmxPort</param-name>

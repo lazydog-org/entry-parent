@@ -4,6 +4,10 @@ import java.util.Date;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.security.auth.message.config.AuthConfigFactory;
+import javax.security.auth.message.config.AuthConfigProvider;
+import javax.security.auth.message.config.ServerAuthConfig;
+import javax.security.auth.message.config.ServerAuthContext;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import org.lazydog.entry.mbean.ApplicationRegistrationService;
@@ -80,14 +84,38 @@ trace(Level.INFO, "%s is %s", APPLICATION_ID_KEY, applicationId);
             environment.put(MBeanFactory.JMX_PORT_KEY, event.getServletContext().getInitParameter(JMX_PORT_KEY));
             environment.put(MBeanFactory.LOGIN_KEY, event.getServletContext().getInitParameter(LOGIN_KEY));
             environment.put(MBeanFactory.PASSWORD_KEY, event.getServletContext().getInitParameter(PASSWORD_KEY));
-trace(Level.INFO, "%s is %s", JMX_HOST_KEY, event.getServletContext().getInitParameter(JMX_HOST_KEY));
-trace(Level.INFO, "%s is %s", JMX_PORT_KEY, event.getServletContext().getInitParameter(JMX_PORT_KEY));
-trace(Level.INFO, "%s is %s", LOGIN_KEY, event.getServletContext().getInitParameter(LOGIN_KEY));
-trace(Level.INFO, "%s is %s", PASSWORD_KEY, event.getServletContext().getInitParameter(PASSWORD_KEY));
+trace(Level.FINE, "%s is %s", JMX_HOST_KEY, event.getServletContext().getInitParameter(JMX_HOST_KEY));
+trace(Level.FINE, "%s is %s", JMX_PORT_KEY, event.getServletContext().getInitParameter(JMX_PORT_KEY));
+trace(Level.FINE, "%s is %s", LOGIN_KEY, event.getServletContext().getInitParameter(LOGIN_KEY));
+trace(Level.FINE, "%s is %s", PASSWORD_KEY, event.getServletContext().getInitParameter(PASSWORD_KEY));
             applicationRegistrationService = MBeanFactory.create(ApplicationRegistrationService.class, environment);
 
             serverAuthModule = applicationRegistrationService.getServerAuthModule(applicationId);
-trace(Level.INFO, "serverAuthModule is %s", serverAuthModule);
+trace(Level.FINE, "serverAuthModule is %s", serverAuthModule);
+
+            AuthConfigFactory factory = AuthConfigFactory.getFactory();
+trace(Level.INFO, "factory is %s", factory);
+            String[] registrationIDs = factory.getRegistrationIDs(null);
+            for (String registrationID : registrationIDs) {
+trace(Level.INFO, "registrationID is %s", registrationID);
+                AuthConfigFactory.RegistrationContext registrationContext = factory.getRegistrationContext(registrationID);
+                String layer = registrationContext.getMessageLayer();
+trace(Level.INFO, "layer is %s", layer);
+                String appContext = registrationContext.getAppContext();
+trace(Level.INFO, "appContext is %s", appContext);
+                AuthConfigProvider authConfigProvider = factory.getConfigProvider(layer, appContext, null);
+trace(Level.INFO, "authConfigProvider is %s", authConfigProvider);
+                if (authConfigProvider != null) {
+                    ServerAuthConfig serverAuthConfig = authConfigProvider.getServerAuthConfig(layer, appContext, null);
+trace(Level.INFO, "serverAuthConfig is %s", serverAuthConfig);
+                    if (serverAuthConfig != null) {
+                        ServerAuthContext serverAuthContext1 = serverAuthConfig.getAuthContext("true", null, null);
+                        ServerAuthContext serverAuthContext2 = serverAuthConfig.getAuthContext("false", null, null);
+trace(Level.INFO, "serverAuthContext is %s", serverAuthContext1);
+trace(Level.INFO, "serverAuthContext is %s", serverAuthContext2);
+                    }
+                }
+            }
         }
         catch(Exception e) {
             e.printStackTrace();
