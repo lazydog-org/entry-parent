@@ -7,6 +7,13 @@
     version="3.0">
     <display-name>Entry</display-name>
     <description>Entry</description>
+    <listener>
+        <listener-class>org.lazydog.entry.application.registration.server.ApplicationRegistrationServer</listener-class>
+    </listener>
+    <context-param>
+        <param-name>applicationId</param-name>
+        <param-value>Entry</param-value>
+    </context-param>
     <context-param>
         <param-name>javax.faces.PROJECT_STAGE</param-name>
         <param-value>Development</param-value>

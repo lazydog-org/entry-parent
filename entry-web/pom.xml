@@ -26,6 +26,11 @@
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
+            <artifactId>entry-application-registration</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
             <artifactId>entry-faces-ui</artifactId>
             <version>${project.version}</version>
         </dependency>

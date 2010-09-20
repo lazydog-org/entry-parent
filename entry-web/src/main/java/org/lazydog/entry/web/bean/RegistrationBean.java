@@ -61,7 +61,7 @@ e.printStackTrace();
             outcome = "failure";
         }
 
-        return "protected";
+        return "protected?faces-redirect=true";
     }
 
     /**
