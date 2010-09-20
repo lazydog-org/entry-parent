@@ -249,9 +249,9 @@ public class UserProfile implements Comparable<UserProfile>, Serializable {
     }
 
     /**
-     * Create a new instance of this object.
+     * Get a new instance of this class.
      * 
-     * @return  a new instance of this object.
+     * @return  a new instance of this class.
      */
     public static UserProfile newInstance() {
 

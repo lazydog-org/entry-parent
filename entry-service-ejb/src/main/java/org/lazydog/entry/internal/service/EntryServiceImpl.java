@@ -160,7 +160,7 @@ public class EntryServiceImpl implements EntryService {
         entryAccountManager.createAccount(userProfile.getUsername(), userProfile.getPassword());
 
         // Lock the user account.
-        entryAccountManager.lockAccount(userProfile.getUsername());
+//entryAccountManager.lockAccount(userProfile.getUsername());
 
         return entryAccountManager.accountExists(userProfile.getUsername());
     }

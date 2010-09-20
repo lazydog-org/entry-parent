@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app  
+    xmlns="http://java.sun.com/xml/ns/javaee"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://java.sun.com/xml/ns/javaee
+                        http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"
+    version="3.0">
+    <display-name>Test</display-name>
+    <description>Test</description>
+    <listener>
+        <listener-class>org.lazydog.entry.application.registration.client.ApplicationRegistrationClient</listener-class>
+    </listener>
+    <context-param>
+        <param-name>applicationId</param-name>
+        <param-value>Test</param-value>
+    </context-param>
+    <context-param>
+        <param-name>jmxHost</param-name>
+        <param-value>endor</param-value>
+    </context-param>
+    <context-param>
+        <param-name>jmxPort</param-name>
+        <param-value>8686</param-value>
+    </context-param>
+    <context-param>
+        <param-name>login</param-name>
+        <param-value>admin</param-value>
+    </context-param>
+    <context-param>
+        <param-name>password</param-name>
+        <param-value>adminadmin</param-value>
+    </context-param>
+    <context-param>
+        <param-name>javax.faces.PROJECT_STAGE</param-name>
+        <param-value>Development</param-value>
+    </context-param>
+    <servlet>
+        <servlet-name>Faces Servlet</servlet-name>
+        <servlet-class>javax.faces.webapp.FacesServlet</servlet-class>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>Faces Servlet</servlet-name>
+        <url-pattern>*.jsf</url-pattern>
+    </servlet-mapping>
+    <security-constraint>
+        <web-resource-collection>
+            <web-resource-name>Protected Page</web-resource-name>
+            <url-pattern>/pages/protected.jsf</url-pattern>
+            <http-method>GET</http-method>
+            <http-method>POST</http-method>
+        </web-resource-collection>
+        <auth-constraint>
+            <role-name>authorized</role-name>
+        </auth-constraint>
+    </security-constraint>
+    <security-role>
+        <description>Authorized User</description>
+        <role-name>authorized</role-name>
+    </security-role>
+    <welcome-file-list>
+        <welcome-file>pages/index.jsf</welcome-file>
+    </welcome-file-list>
+</web-app>
