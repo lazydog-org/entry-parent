@@ -1,4 +1,4 @@
-package org.lazydog.entry.auth.module;
+package org.lazydog.entry.security.module;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -23,15 +23,15 @@ import javax.servlet.http.HttpServletResponse;
 
 
 /**
- * Entry authentication module.
+ * Entry server authentication module.
  *
  * This class is a JSR-196 based Server Authentication Module (SAM).
  *
  * @author  Ron Rickard
  */
-public class EntryAuthModule implements ServerAuthModule {
+public class EntryServerAuthModule implements ServerAuthModule {
 
-    private static final Logger logger = Logger.getLogger(EntryAuthModule.class.getName());
+    private static final Logger logger = Logger.getLogger(EntryServerAuthModule.class.getName());
     private static final Class[] supportedMessageTypes = new Class[] {
       HttpServletRequest.class,
       HttpServletResponse.class
