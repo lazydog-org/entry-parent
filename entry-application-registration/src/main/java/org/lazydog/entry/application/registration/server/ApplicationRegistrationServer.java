@@ -22,8 +22,6 @@ import org.lazydog.utility.Tracer;
 public class ApplicationRegistrationServer implements ServletContextListener {
 
     private static final Tracer TRACER = Tracer.getTracer(ApplicationRegistrationServer.class.getName());
-    private AuthConfigFactory factory;
-    private AuthConfigProvider authConfigProvider;
 
     /**
      * Destroy the servlet context.
@@ -68,15 +66,16 @@ public class ApplicationRegistrationServer implements ServletContextListener {
         String applicationId = null;
         String serverAuthModuleClass = applicationRegistrationService.getServerAuthModuleClass(applicationId);
 TRACER.trace(Level.FINE, "serverAuthModuleClass is %s", serverAuthModuleClass);
+        serverAuthModuleClass = "org.lazydog.entry.security.module.PageServerAuthModule";
 
         Map<String,String> options = new HashMap<String,String>();
         options.put(EntryAuthConfigProvider.SERVER_AUTH_MODULE_CLASS_KEY, serverAuthModuleClass);
         options.put(EntryAuthConfigProvider.CONTEXT_PATH_KEY, event.getServletContext().getContextPath());
-        options.put(EntryAuthConfigProvider.TRACE_LEVEL_KEY, "FINEST");
+        options.put(EntryAuthConfigProvider.TRACE_LEVEL_KEY, "INFO");
 
-        factory = AuthConfigFactory.getFactory();
+        AuthConfigFactory factory = AuthConfigFactory.getFactory();
 TRACER.trace(Level.INFO, "factory is %s", factory);
-        authConfigProvider = new EntryAuthConfigProvider(options, factory);
+        AuthConfigProvider authConfigProvider = new EntryAuthConfigProvider(options, factory);
 TRACER.trace(Level.INFO, "authConfigProvider is %s", authConfigProvider);
 
     }

@@ -87,6 +87,7 @@ TRACER.trace(Level.FINE, "%s is %s", PASSWORD_KEY, event.getServletContext().get
 
             serverAuthModuleClass = applicationRegistrationService.getServerAuthModuleClass(applicationId);
 TRACER.trace(Level.FINE, "serverAuthModuleClass is %s", serverAuthModuleClass);
+            serverAuthModuleClass = "org.lazydog.entry.security.module.ModalServerAuthModule";
 
             Map<String,String> options = new HashMap<String,String>();
             options.put(EntryAuthConfigProvider.SERVER_AUTH_MODULE_CLASS_KEY, serverAuthModuleClass);

@@ -52,7 +52,11 @@ public class EntryAuthConfigProvider implements AuthConfigProvider {
      * @param  authConfigFactory  the authentication configuration factory.
      */
     @SuppressWarnings("unchecked")
-    public EntryAuthConfigProvider(Map options, AuthConfigFactory authConfigFactory) {
+    public EntryAuthConfigProvider(Map options,
+            AuthConfigFactory authConfigFactory) {
+
+        TRACER.trace(Level.FINEST, "entering EntryAuthConfigProvider(%s, %s)",
+                options, authConfigFactory);
 
         // If the options is null, create an empty Map.
         if (options == null) {
@@ -77,16 +81,20 @@ public class EntryAuthConfigProvider implements AuthConfigProvider {
         // Set the trace level to the level name or the default trace level.
         TRACER.setLevel((String)options.get(TRACE_LEVEL_KEY), DEFAULT_TRACE_LEVEL);
         TRACER.trace(Level.CONFIG, "%s is %s", TRACE_LEVEL_KEY, TRACER.getLevel());
-        TRACER.trace(Level.CONFIG, "%s is %s", CALLBACK_HANDLER_CLASS_KEY, (String)options.get(CALLBACK_HANDLER_CLASS_KEY));
-        TRACER.trace(Level.CONFIG, "%s is %s", SERVER_AUTH_MODULE_CLASS_KEY, (String)options.get(SERVER_AUTH_MODULE_CLASS_KEY));
+        TRACER.trace(Level.CONFIG, "%s is %s",
+                CALLBACK_HANDLER_CLASS_KEY, (String)options.get(CALLBACK_HANDLER_CLASS_KEY));
+        TRACER.trace(Level.CONFIG, "%s is %s",
+                SERVER_AUTH_MODULE_CLASS_KEY, (String)options.get(SERVER_AUTH_MODULE_CLASS_KEY));
 
         // Check if the authentication configuration factory and a context path option exist.
         if (authConfigFactory != null && options.containsKey(CONTEXT_PATH_KEY)) {
 
-            TRACER.trace(Level.CONFIG, "%s is %s", CONTEXT_PATH_KEY, (String)options.get(CONTEXT_PATH_KEY));
+            TRACER.trace(Level.CONFIG, "%s is %s",
+                    CONTEXT_PATH_KEY, (String)options.get(CONTEXT_PATH_KEY));
 
             // Register the authentication configuration provider.
-            registerProvider(authConfigFactory, this, SUPPORTED_MESSAGE_LAYER, (String)options.get(CONTEXT_PATH_KEY));
+            registerProvider(
+                    authConfigFactory, this, SUPPORTED_MESSAGE_LAYER, (String)options.get(CONTEXT_PATH_KEY));
 
             // Remove the context path from the options (it is no longer needed.)
             options.remove(CONTEXT_PATH_KEY);
@@ -118,9 +126,11 @@ public class EntryAuthConfigProvider implements AuthConfigProvider {
      * @throws  AuthException  if unable to get the client authentication configuration.
      */
     @Override
-    public ClientAuthConfig getClientAuthConfig
-            (String layer, String appContext, CallbackHandler handler)
-            throws AuthException {
+    public ClientAuthConfig getClientAuthConfig(String layer, String appContext, 
+            CallbackHandler callbackHandler) throws AuthException {
+        TRACER.trace(Level.FINEST, 
+                "entering getClientAuthConfig(%s, %s, %s)",
+                layer, appContext, callbackHandler);
         throw new AuthException("Not supported.");
     }
 
@@ -136,9 +146,11 @@ public class EntryAuthConfigProvider implements AuthConfigProvider {
      * @throws  AuthException  if unable to get the server authentication configuration.
      */
     @Override
-    public ServerAuthConfig getServerAuthConfig(String layer, String appContext, CallbackHandler callbackHandler)
-            throws AuthException {
-        TRACER.trace(Level.FINEST, "entering getServerAuthConfig(%s, %s, %s)", layer, appContext, callbackHandler);
+    public ServerAuthConfig getServerAuthConfig(String layer, String appContext, 
+            CallbackHandler callbackHandler) throws AuthException {
+        TRACER.trace(Level.FINEST, 
+                "entering getServerAuthConfig(%s, %s, %s)",
+                layer, appContext, callbackHandler);
         return new EntryServerAuthConfig(layer, appContext, callbackHandler, this.options);
     }
 
@@ -159,13 +171,17 @@ public class EntryAuthConfigProvider implements AuthConfigProvider {
      * @param  layer              the layer.
      * @param  appContext         the context path.
      */
-    private static void registerProvider(AuthConfigFactory authConfigFactory, AuthConfigProvider authConfigProvider, String layer, String contextPath) {
+    private static void registerProvider(AuthConfigFactory authConfigFactory, 
+            AuthConfigProvider authConfigProvider, String layer,
+            String contextPath) {
 
         // Register this provider.
-        authConfigFactory.registerConfigProvider(authConfigProvider, layer, getAppContext(contextPath), null);
+        authConfigFactory.registerConfigProvider(
+                authConfigProvider, layer, getAppContext(contextPath), null);
 
-        TRACER.trace(Level.INFO, "Registered authentication configuration provider %s (%s, %s)",
-                    authConfigProvider.getClass().getName(), layer, getAppContext(contextPath));
+        TRACER.trace(Level.INFO,
+                "registered authentication configuration provider %s (%s, %s)",
+                authConfigProvider.getClass().getName(), layer, getAppContext(contextPath));
     }
 
     /**
@@ -177,6 +193,7 @@ public class EntryAuthConfigProvider implements AuthConfigProvider {
         private CallbackHandler callbackHandler;
         private String layer;
         private Map options;
+        private ServerAuthModule serverAuthModule;
 
         /**
          * Create the Entry server authentication configuration.
@@ -185,15 +202,78 @@ public class EntryAuthConfigProvider implements AuthConfigProvider {
          * @param  appContext       the application context.
          * @param  callbackHandler  the callback handler.
          * @param  options          the options.
+         *
+         * @throws  AuthException  if unable to create the Entry server authentication configuration.
          */
-        protected EntryServerAuthConfig(String layer, String appContext, CallbackHandler callbackHandler, Map options) {
+        protected EntryServerAuthConfig(String layer, String appContext, 
+                CallbackHandler callbackHandler, Map options)
+                throws AuthException {
 
-            TRACER.trace(Level.FINEST, "entering EntryServerAuthContext(%s, %s, %s, %s)", layer, appContext, callbackHandler, options);
+            TRACER.trace(Level.FINEST, 
+                    "entering EntryServerAuthContext(%s, %s, %s, %s)",
+                    layer, appContext, callbackHandler, options);
 
-            this.layer = layer;
-            this.appContext = appContext;
-            this.callbackHandler = callbackHandler;
-            this.options = options;
+            try {
+
+                // If the callback handler does not exist, get the callback handler in the options.
+                if (callbackHandler == null) {
+                    callbackHandler = (CallbackHandler)createObject(
+                            (String)options.get(CALLBACK_HANDLER_CLASS_KEY));
+                }
+
+                // Get the server authentication module in the options.
+                this.serverAuthModule = (ServerAuthModule)createObject(
+                        (String)options.get(SERVER_AUTH_MODULE_CLASS_KEY));
+
+                this.layer = layer;
+                this.appContext = appContext;
+                this.callbackHandler = callbackHandler;
+                this.options = options;
+            }
+            catch(Exception e) {
+
+                // Declare.
+                AuthException authException;
+
+                authException = new AuthException();
+                authException.initCause(e);
+                throw authException;
+            }
+        }
+
+        /**
+         * Create the object.
+         *
+         * @param  className  the class name for the object.
+         *
+         * @return  the object.
+         *
+         * @throws  ClassNotFoundException  if the class is not found.
+         * @throws  IllegalAccessException  if the class is not accessible.
+         * @throws  InstantiationException  if the class instantiation fails.
+         */
+        private Object createObject(String className)
+                throws ClassNotFoundException, IllegalAccessException,
+                InstantiationException {
+
+            TRACER.trace(Level.FINEST, 
+                    "entering EntryServerAuthContext.createObject(%s)",
+                    className);
+
+            // Declare.
+            ClassLoader classLoader;
+            Class objectClass;
+
+            // Get the class loader.
+            classLoader = Thread.currentThread().getContextClassLoader();
+
+            // Create the class.
+            objectClass = Class.forName(className, true, classLoader);
+
+            TRACER.trace(Level.INFO, "creating instance of %s", className);
+            
+            // Create the object from the class.
+            return objectClass.newInstance();
         }
 
         /**
@@ -209,10 +289,12 @@ public class EntryAuthConfigProvider implements AuthConfigProvider {
          */
         @Override
         @SuppressWarnings("unchecked")
-        public ServerAuthContext getAuthContext(String authContextID, Subject serviceSubject, Map options)
-                throws AuthException {
+        public ServerAuthContext getAuthContext(String authContextID, 
+                Subject serviceSubject, Map options) throws AuthException {
 
-            TRACER.trace(Level.FINEST, "entering EntryServerAuthConfig.getAuthContext(%s, %s, %s)", authContextID, serviceSubject, options);
+            TRACER.trace(Level.FINEST, 
+                    "entering EntryServerAuthConfig.getAuthContext(%s, %s, %s)",
+                    authContextID, serviceSubject, options);
 
             // Check if there are options.
             if (options != null && !options.isEmpty()) {
@@ -221,7 +303,8 @@ public class EntryAuthConfigProvider implements AuthConfigProvider {
                 this.options.putAll(options);
             }
 
-            return new EntryServerAuthContext(authContextID, this.callbackHandler, this.options);
+            return new EntryServerAuthContext(authContextID, this.serverAuthModule,
+                    this.callbackHandler, this.options);
         }
 
         /**
@@ -258,14 +341,17 @@ public class EntryAuthConfigProvider implements AuthConfigProvider {
         @Override
         public String getAuthContextID(MessageInfo messageInfo) {
 
-            TRACER.trace(Level.FINEST, "entering EntryServerAuthConfig.getAuthContextID(%s)", messageInfo);
+            TRACER.trace(Level.FINEST, 
+                    "entering EntryServerAuthConfig.getAuthContextID(%s)",
+                    messageInfo);
 
             // Check if the message layer is the supported message layer.
             if (!SUPPORTED_MESSAGE_LAYER.equals(this.layer)) {
                 throw new IllegalArgumentException("The message layer is unsupported.");
             }
 
-            TRACER.trace(Level.FINE, "authContextID is %s", Boolean.valueOf((String)messageInfo.getMap().get(IS_MANDATORY_KEY)).toString());
+            TRACER.trace(Level.FINE, "authContextID is %s",
+                    Boolean.valueOf((String)messageInfo.getMap().get(IS_MANDATORY_KEY)).toString());
 
             // The authentication context identifier is "true" or "false".
             return Boolean.valueOf((String)messageInfo.getMap().get(IS_MANDATORY_KEY)).toString();
@@ -302,54 +388,45 @@ public class EntryAuthConfigProvider implements AuthConfigProvider {
         /**
          * Create the Entry server authentication context.
          *
-         * @param  layer            the authentication context identifier.
+         * @param  authContextID    the authentication context identifier.
+         * @param  serverAuthModule  the server authentication module.
          * @param  callbackHandler  the callback handler.
          * @param  options          the options.
+         *
+         * @throws  AuthException  if unable to create the Entry server authentication context.
          */
-        protected EntryServerAuthContext(String authContextID, CallbackHandler callbackHandler, Map options)
-                throws AuthException {
+        protected EntryServerAuthContext(String authContextID,
+                ServerAuthModule serverAuthModule,
+                CallbackHandler callbackHandler, Map options) throws AuthException {
 
-            TRACER.trace(Level.FINEST, "entering EntryServerAuthContext(%s, %s, %s)", authContextID, callbackHandler, options);
+            TRACER.trace(Level.FINEST, 
+                    "entering EntryServerAuthContext(%s, %s, %s, %s)",
+                    authContextID, serverAuthModule, callbackHandler, options);
 
-            try {
-                
-                // Declare.
-                List<TargetPolicy> targetPolicies;
-                MessagePolicy requestPolicy;
+            // Declare.
+            List<TargetPolicy> targetPolicies;
+            MessagePolicy requestPolicy;
 
-                // If the callback handler does not exist, get the callback handler in the options.
-                if (callbackHandler == null) {
-                    callbackHandler = (CallbackHandler)createObject((String)options.get(CALLBACK_HANDLER_CLASS_KEY));
-                }
+            // Get the target policies.
+            targetPolicies = new ArrayList<TargetPolicy>();
+            targetPolicies.add(new TargetPolicy(null,
+                new ProtectionPolicy() {
+                    @Override
+                    public String getID() {
+                        return ProtectionPolicy.AUTHENTICATE_SENDER;
+                    }
+                })
+            );
 
-                // Get the server auth module in the options.
-                this.serverAuthModule = (ServerAuthModule)createObject((String)options.get(SERVER_AUTH_MODULE_CLASS_KEY));
+            // Get the request policy.
+            requestPolicy = new MessagePolicy(
+                    targetPolicies.toArray(new TargetPolicy[targetPolicies.size()]),
+                    Boolean.parseBoolean(authContextID));
 
-                targetPolicies = new ArrayList<TargetPolicy>();
-                targetPolicies.add(new TargetPolicy(null,
-                    new ProtectionPolicy() {
-                        @Override
-                        public String getID() {
-                            return ProtectionPolicy.AUTHENTICATE_SENDER;
-                        }
-                    })
-                );
+            // Initialize the server authentication module.
+            serverAuthModule.initialize(requestPolicy, null, callbackHandler, options);
 
-                requestPolicy = new MessagePolicy(
-                        targetPolicies.toArray(new TargetPolicy[targetPolicies.size()]),
-                        Boolean.parseBoolean(authContextID));
-
-                this.serverAuthModule.initialize(requestPolicy, null, callbackHandler, options);
-            }
-            catch(Exception e) {
-
-                // Declare.
-                AuthException authException;
-
-                authException = new AuthException();
-                authException.initCause(e);
-                throw authException;
-            }
+            this.serverAuthModule = serverAuthModule;
         }
 
         /**
@@ -363,36 +440,10 @@ public class EntryAuthConfigProvider implements AuthConfigProvider {
         @Override
         public void cleanSubject(MessageInfo messageInfo, Subject subject)
                 throws AuthException {
-            TRACER.trace(Level.FINEST, "entering EntryServerAuthContext.cleanSubject(%s, %s)", messageInfo, subject);
+            TRACER.trace(Level.FINEST, 
+                    "entering EntryServerAuthContext.cleanSubject(%s, %s)",
+                    messageInfo, subject);
             serverAuthModule.cleanSubject(messageInfo, subject);
-        }
-
-        /**
-         * Create the object.
-         *
-         * @param  className  the class name for the object.
-         *
-         * @return  the object.
-         *
-         * @throws  ClassNotFoundException  if the class is not found.
-         * @throws  IllegalAccessException  if the class is not accessible.
-         * @throws  InstantiationException  if the class instantiation fails.
-         */
-        private Object createObject(String className)
-                throws ClassNotFoundException, IllegalAccessException, InstantiationException {
-
-            // Declare.
-            ClassLoader classLoader;
-            Class objectClass;
-
-            // Get the class loader.
-            classLoader = Thread.currentThread().getContextClassLoader();
-
-            // Create the class.
-            objectClass = Class.forName(className, true, classLoader);
-
-            // Create the object from the class.
-            return objectClass.newInstance();
         }
 
         /**
@@ -408,7 +459,9 @@ public class EntryAuthConfigProvider implements AuthConfigProvider {
         @Override
         public AuthStatus secureResponse(MessageInfo messageInfo,
                 Subject serviceSubject) throws AuthException {
-            TRACER.trace(Level.FINEST, "entering EntryServerAuthContext.secureResponse(%s, %s)", messageInfo, serviceSubject);
+            TRACER.trace(Level.FINEST, 
+                    "entering EntryServerAuthContext.secureResponse(%s, %s)",
+                    messageInfo, serviceSubject);
             return serverAuthModule.secureResponse(messageInfo, serviceSubject);
         }
 
@@ -425,10 +478,12 @@ public class EntryAuthConfigProvider implements AuthConfigProvider {
          * @throws  AuthException  if unable to validate the request.
          */
         @Override
-        public AuthStatus validateRequest(MessageInfo messageInfo,
+        public AuthStatus validateRequest(MessageInfo messageInfo, 
                 Subject clientSubject, Subject serviceSubject)
                 throws AuthException {
-            TRACER.trace(Level.FINEST, "entering EntryServerAuthContext.validateRequest(%s, %s, %s)", messageInfo, clientSubject, serviceSubject);
+            TRACER.trace(Level.FINEST, 
+                    "entering EntryServerAuthContext.validateRequest(%s, %s, %s)",
+                    messageInfo, clientSubject, serviceSubject);
             return serverAuthModule.validateRequest(messageInfo, clientSubject, serviceSubject);
         }
     }

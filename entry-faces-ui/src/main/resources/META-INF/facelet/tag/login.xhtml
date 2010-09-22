@@ -30,6 +30,7 @@
         </c:choose>
         <form action="entry-login" method="post">
             <h:commandButton value="Login" onclick="showDiv('login-div'); return false;" rendered="#{empty sessionScope['org.lazydog.entry.security.groups']}"/>
+            <h:panelGroup rendered="#{empty sessionScope['org.lazydog.entry.security.groups']}">
             <div id="login-div" style="background-color: #E0E0E0; font-family:sans-serif; font-size: 12px; position: absolute; visibility: #{visibility}; z-index: 1000; top: 50%; left: 50%; margin-top: -112px; margin-left: -225px; border:1px solid grey; width: 450px; height: 225px;">
                 <div style="overflow: hidden; height: 22px; margin: 5px;">
                     <span style="float: left;">
@@ -70,7 +71,7 @@
                                 </li>
                             </ul>
                         </fieldset>
-                        <h:inputHidden id="loginURL"
+                        <h:inputHidden id="currentLoginURL"
                                        value="#{request.requestURI}"/>
                         <h:commandButton value="Login"/>
                     </div>
@@ -80,9 +81,11 @@
                     </div>
                 </div>
             </div>
+            </h:panelGroup>
         </form>
         <form action="entry-logout" method="post">
             <h:commandButton value="Logout" onclick="showDiv('logout-div'); return false;" rendered="#{!empty sessionScope['org.lazydog.entry.security.groups']}"/>
+            <h:panelGroup rendered="#{!empty sessionScope['org.lazydog.entry.security.groups']}">
             <div id="logout-div" style="background-color: #E0E0E0; font-family:sans-serif; font-size: 12px; position: absolute; visibility: hidden; z-index: 1000; top: 50%; left: 50%; margin-top: -58px; margin-left: -200px; border:1px solid grey; width: 400px; height: 116px;">
                 <div style="height: 22px; margin: 5px; overflow: hidden;">
                     <span style="float: left;">
@@ -95,13 +98,14 @@
                         Are you sure you want to logout?
                     </div>
                     <div style="margin: 0 100px; overflow: hidden; padding: 10px; text-align: center;">
-                        <h:inputHidden id="logoutURL"
+                        <h:inputHidden id="currentLogoutURL"
                                        value="#{request.requestURI}"/>
                         <h:commandButton value="Logout" style="float: left;"/>
                         <h:commandButton value="Cancel" onclick="hideDiv('logout-div'); return false;" style="float: right;"/>
                     </div>
                 </div>
             </div>
+            </h:panelGroup>
         </form>
     </ui:composition>
 </html>
