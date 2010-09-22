@@ -11,23 +11,14 @@ import org.lazydog.entry.mbean.ApplicationRegistrationService;
 public class ApplicationRegistrationServiceImpl implements ApplicationRegistrationService {
 
     /**
-     * Get the server authentication module.
+     * Get the server authentication module class.
      *
      * @param  applicationId  the application ID.
      *
-     * @return  the server authentication module.
+     * @return  the server authentication module class.
      */
     @Override
-    public String getServerAuthModule(String applicationId) {
-        return "EntryAuthModule";
-    }
-
-    /**
-     * Get a new instance of this class.
-     *
-     * @return  a new instance of this class.
-     */
-    public static ApplicationRegistrationService newInstance() {
-        return new ApplicationRegistrationServiceImpl();
+    public String getServerAuthModuleClass(String applicationId) {
+        return "org.lazydog.entry.security.module.EntryServerAuthModule";
     }
 }

@@ -1,11 +1,9 @@
 package org.lazydog.entry.security.module;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.security.Principal;
 import javax.security.auth.Subject;
 import javax.security.auth.callback.Callback;
@@ -20,6 +18,7 @@ import javax.security.auth.message.callback.PasswordValidationCallback;
 import javax.security.auth.message.module.ServerAuthModule;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.lazydog.utility.Tracer;
 
 
 /**
@@ -31,7 +30,7 @@ import javax.servlet.http.HttpServletResponse;
  */
 public class EntryServerAuthModule implements ServerAuthModule {
 
-    private static final Logger logger = Logger.getLogger(EntryServerAuthModule.class.getName());
+    private static final Tracer TRACER = Tracer.getTracer(EntryServerAuthModule.class.getName());
     private static final Class[] supportedMessageTypes = new Class[] {
       HttpServletRequest.class,
       HttpServletResponse.class
@@ -39,28 +38,25 @@ public class EntryServerAuthModule implements ServerAuthModule {
     private static final String AUTH_TYPE = "EntryAuthModule";
     private static final String AUTH_TYPE_KEY = "javax.servlet.http.authType";
     private static final String DEFAULT_LOGIN_URL = "/entry/pages/login.jsf";
-    private static final Level DEFAULT_LOG_LEVEL = Level.WARNING;
-    private static final int DEFAULT_SESSION_TIMEOUT = -1;
-    private static final String GROUPS_KEY = "org.lazydog.entry.auth.module.groups";
+    private static final Level DEFAULT_TRACE_LEVEL = Level.WARNING;
+    private static final String GROUPS_KEY = "org.lazydog.entry.security.groups";
     private static final String LOGIN_ACTION = "/entry-login";
     private static final String LOGIN_URL_KEY = "login.url";
     private static final String LOGIN_URL_PARAMETER = "loginURL";
-    private static final String LOG_LEVEL_KEY = "log.level";
+    private static final String TRACE_LEVEL_KEY = "org.lazydog.entry.security.traceLevel";
     private static final String LOGOUT_ACTION = "/entry-logout";
     private static final String LOGOUT_URL_PARAMETER = "logoutURL";
     private static final String PASSWORD_PARAMETER = "password";
-    private static final String RETRY_KEY = "org.lazydog.entry.auth.module.retry";
-    private static final String RETURN_URL_KEY = "org.lazydog.entry.auth.module.returnURL";
+    private static final String RETRY_KEY = "org.lazydog.entry.security.retry";
+    private static final String RETURN_URL_KEY = "org.lazydog.entry.security.returnURL";
     private static final String RETURN_URL_PARAMETER = "returnURL";
-    private static final String SESSION_TIMEOUT_KEY = "session.timeout";
-    private static final String USERNAME_KEY = "org.lazydog.entry.auth.module.username";
+    private static final String USERNAME_KEY = "org.lazydog.entry.security.username";
     private static final String USERNAME_PARAMETER = "username";
 
     private CallbackHandler callbackHandler;
     private String loginURL;
     private MessagePolicy requestPolicy;
     private MessagePolicy responsePolicy;
-    private int sessionTimeout;
 
     /**
      * Authenticate the request.
@@ -98,7 +94,7 @@ public class EntryServerAuthModule implements ServerAuthModule {
                 // Declare.
                 PasswordValidationCallback passwordValidationCallback;
 
-                trace(Level.INFO, "authenticating username %s", username);
+                TRACER.trace(Level.INFO, "authenticating username %s", username);
                 
                 // Authenticate the username and password.
                 passwordValidationCallback = new PasswordValidationCallback(subject, username, password.toCharArray());
@@ -115,7 +111,7 @@ public class EntryServerAuthModule implements ServerAuthModule {
                     // Initialize.
                     groups = new ArrayList<String>();
 
-                    trace(Level.INFO, "username %s is authenticated", username);
+                    TRACER.trace(Level.INFO, "username %s is authenticated", username);
 
                     // Loop through the principals.
                     for (Principal principal : passwordValidationCallback.getSubject().getPrincipals()) {
@@ -132,29 +128,29 @@ public class EntryServerAuthModule implements ServerAuthModule {
                     request.getSession().setAttribute(GROUPS_KEY, groups.toArray(new String[groups.size()]));
                     request.getSession().setAttribute(USERNAME_KEY, username);
 
-                    trace(Level.FINE, "session set attributeMap['%s'] is %s", GROUPS_KEY, groups.toArray(new String[groups.size()]));
-                    trace(Level.FINE, "session set attributeMap['%s'] is %s", USERNAME_KEY, username);
+                    TRACER.trace(Level.FINE, "session set attributeMap['%s'] is %s", GROUPS_KEY, groups.toArray(new String[groups.size()]));
+                    TRACER.trace(Level.FINE, "session set attributeMap['%s'] is %s", USERNAME_KEY, username);
                 }
                 else {
-                    trace(Level.INFO, "username %s is not authenticated", username);
+                    TRACER.trace(Level.INFO, "username %s is not authenticated", username);
                 }
             }
         }
         catch(Exception e) {
-            trace(Level.WARNING, "unable to authenticate username " + username);
+            TRACER.trace(Level.WARNING, "unable to authenticate username " + username);
         }
 
-        trace(Level.FINE, "authenticate return %s", isAuthenticated);
+        TRACER.trace(Level.FINE, "authenticate return %s", isAuthenticated);
         return isAuthenticated;
     }
 
     /**
-     * Clear the subject.
+     * Clean the subject.
      *
      * @param  messageInfo  the message information.
      * @param  subject      the subject.
      *
-     * @throws  AuthException  if unable to clear the subject.
+     * @throws  AuthException  if unable to clean the subject.
      */
     @Override
     public void cleanSubject(MessageInfo messageInfo, Subject subject) throws AuthException {
@@ -244,33 +240,11 @@ public class EntryServerAuthModule implements ServerAuthModule {
             this.loginURL = (options.get(LOGIN_URL_KEY) == null)
                     ? DEFAULT_LOGIN_URL : (String)options.get(LOGIN_URL_KEY);
 
-            try {
+            // Set the trace level to the level name or the default trace level.
+            TRACER.setLevel((String)options.get(TRACE_LEVEL_KEY), DEFAULT_TRACE_LEVEL);
 
-                // Set the log level to the supplied log level.
-                logger.setLevel(Level.parse((String)options.get(LOG_LEVEL_KEY)));
-            }
-            catch(Exception e) {
-
-                // The supplied log level is invalid,
-                // so set the log level to the default log level.
-                logger.setLevel(DEFAULT_LOG_LEVEL);
-            }
-
-            try {
-
-                // Set the session timeout to the supplied session timeout.
-                this.sessionTimeout = Integer.parseInt((String)options.get(SESSION_TIMEOUT_KEY));
-            }
-            catch(Exception e) {
-
-                // The supplied session timeout is invalid,
-                // so set the session timeout to the default session timeout.
-                this.sessionTimeout = DEFAULT_SESSION_TIMEOUT;
-            }
-
-            trace(Level.CONFIG, "%s is %s", LOG_LEVEL_KEY, logger.getLevel());
-            trace(Level.CONFIG, "%s is %s", LOGIN_URL_KEY, this.loginURL);
-            trace(Level.CONFIG, "%s is %s", SESSION_TIMEOUT_KEY, this.sessionTimeout);
+            TRACER.trace(Level.CONFIG, "%s is %s", TRACE_LEVEL_KEY, TRACER.getLevel());
+            TRACER.trace(Level.CONFIG, "%s is %s", LOGIN_URL_KEY, this.loginURL);
 
             this.callbackHandler = callbackHandler;
             this.requestPolicy = requestPolicy;
@@ -352,7 +326,7 @@ public class EntryServerAuthModule implements ServerAuthModule {
         if (loginURL == null) {
             request.getSession().setAttribute(RETURN_URL_KEY, request.getRequestURI());
 
-            trace(Level.FINE, "session set attributeMap['%s'] is %s", RETURN_URL_KEY, request.getRequestURI());
+            TRACER.trace(Level.FINE, "session set attributeMap['%s'] is %s", RETURN_URL_KEY, request.getRequestURI());
 
             loginURL = this.loginURL;
         }
@@ -361,9 +335,9 @@ public class EntryServerAuthModule implements ServerAuthModule {
             request.getSession().setAttribute(RETURN_URL_KEY, request.getParameter(RETURN_URL_PARAMETER));
             request.getSession().setAttribute(USERNAME_KEY, request.getParameter(USERNAME_PARAMETER));
 
-            trace(Level.FINE, "session set attributeMap['%s'] is %s", RETRY_KEY, "true");
-            trace(Level.FINE, "session set attributeMap['%s'] is %s", RETURN_URL_KEY, request.getParameter(RETURN_URL_PARAMETER));
-            trace(Level.FINE, "session set attributeMap['%s'] is %s", USERNAME_KEY, request.getParameter(USERNAME_PARAMETER));
+            TRACER.trace(Level.FINE, "session set attributeMap['%s'] is %s", RETRY_KEY, "true");
+            TRACER.trace(Level.FINE, "session set attributeMap['%s'] is %s", RETURN_URL_KEY, request.getParameter(RETURN_URL_PARAMETER));
+            TRACER.trace(Level.FINE, "session set attributeMap['%s'] is %s", USERNAME_KEY, request.getParameter(USERNAME_PARAMETER));
         }
 
         // Respond with the login URL.
@@ -396,8 +370,8 @@ public class EntryServerAuthModule implements ServerAuthModule {
             request.getSession().removeAttribute(RETRY_KEY);
             request.getSession().removeAttribute(RETURN_URL_KEY);
 
-            trace(Level.FINE, "session remove attributeMap['%s']", RETRY_KEY);
-            trace(Level.FINE, "session remove attributeMap['%s']", RETURN_URL_KEY);
+            TRACER.trace(Level.FINE, "session remove attributeMap['%s']", RETRY_KEY);
+            TRACER.trace(Level.FINE, "session remove attributeMap['%s']", RETURN_URL_KEY);
 
             // Respond with the return URL.
             redirectTo(response, returnURL);
@@ -440,8 +414,8 @@ public class EntryServerAuthModule implements ServerAuthModule {
             groups = (String[])request.getSession().getAttribute(GROUPS_KEY);
             username = (String)request.getSession().getAttribute(USERNAME_KEY);
 
-            trace(Level.FINE, "session get attributeMap['%s'] is %s", GROUPS_KEY, (String[])request.getSession().getAttribute(GROUPS_KEY));
-            trace(Level.FINE, "session get attributeMap['%s'] is %s", USERNAME_KEY, (String)request.getSession().getAttribute(USERNAME_KEY));
+            TRACER.trace(Level.FINE, "session get attributeMap['%s'] is %s", GROUPS_KEY, (String[])request.getSession().getAttribute(GROUPS_KEY));
+            TRACER.trace(Level.FINE, "session get attributeMap['%s'] is %s", USERNAME_KEY, (String)request.getSession().getAttribute(USERNAME_KEY));
 
             callerPrincipalCallback = new CallerPrincipalCallback(subject, username);
             groupPrincipalCallback = new GroupPrincipalCallback(subject, groups);
@@ -453,31 +427,6 @@ public class EntryServerAuthModule implements ServerAuthModule {
             authException = new AuthException();
             authException.initCause(e);
             throw authException;
-        }
-    }
-
-    /**
-     * Create a trace log at the specified level.
-     *
-     * @param  level   the log level.
-     * @param  format  the trace format.
-     * @param  args    the trace arguments.
-     */
-    private void trace(Level level, String format, Object... args) {
-
-        // Check if the level is appropriate to log.
-        if (level.intValue() >= logger.getLevel().intValue()) {
-
-            // Declare.
-            StringBuffer message;
-
-            // Set the trace message.
-            message = new StringBuffer();
-            message.append(String.format("[%1$tD %1$tT:%1$tL %1$tZ] %2$s ", new Date(), this.getClass().getName()));
-            message.append(String.format(format, args));
-
-            // Create the trace log.
-            logger.log(level, message.toString());
         }
     }
 
@@ -494,6 +443,7 @@ public class EntryServerAuthModule implements ServerAuthModule {
      * @throws  AuthException  if unable to validate the request.
      */
     @Override
+    @SuppressWarnings("unchecked")
     public AuthStatus validateRequest(MessageInfo messageInfo, Subject clientSubject,
             Subject serviceSubject) throws AuthException {
 
@@ -509,15 +459,15 @@ public class EntryServerAuthModule implements ServerAuthModule {
         request = (HttpServletRequest)messageInfo.getRequestMessage();
         response = (HttpServletResponse)messageInfo.getResponseMessage();
 
-        trace(Level.FINE, "request get parameterMap['%s'] is %s", LOGIN_URL_PARAMETER, request.getParameter(LOGIN_URL_PARAMETER));
-        trace(Level.FINE, "request get parameterMap['%s'] is %s", LOGOUT_URL_PARAMETER, request.getParameter(LOGOUT_URL_PARAMETER));
-        trace(Level.FINE, "request get parameterMap['%s'] is %s", RETURN_URL_PARAMETER, request.getParameter(RETURN_URL_PARAMETER));
-        trace(Level.FINE, "request get parameterMap['%s'] is %s", USERNAME_PARAMETER, request.getParameter(USERNAME_PARAMETER));
+        TRACER.trace(Level.FINE, "request get parameterMap['%s'] is %s", LOGIN_URL_PARAMETER, request.getParameter(LOGIN_URL_PARAMETER));
+        TRACER.trace(Level.FINE, "request get parameterMap['%s'] is %s", LOGOUT_URL_PARAMETER, request.getParameter(LOGOUT_URL_PARAMETER));
+        TRACER.trace(Level.FINE, "request get parameterMap['%s'] is %s", RETURN_URL_PARAMETER, request.getParameter(RETURN_URL_PARAMETER));
+        TRACER.trace(Level.FINE, "request get parameterMap['%s'] is %s", USERNAME_PARAMETER, request.getParameter(USERNAME_PARAMETER));
        
         // Check if the request URI is the login action.
         if (isRequestURIAction(request, LOGIN_ACTION)) {
 
-            trace(Level.INFO, "accessing login action %s", request.getRequestURI());
+            TRACER.trace(Level.INFO, "accessing login action %s", request.getRequestURI());
 
             // Authenticate the request.
             if (authenticate(request, clientSubject)) {
@@ -531,7 +481,7 @@ public class EntryServerAuthModule implements ServerAuthModule {
         // Check if the request URI is the logout action.
         else if (isRequestURIAction(request, LOGOUT_ACTION)) {
 
-            trace(Level.INFO, "accessing logout action %s", request.getRequestURI());
+            TRACER.trace(Level.INFO, "accessing logout action %s", request.getRequestURI());
 
             clearSession(request);
             respondWithReturnURL(request, response);
@@ -541,7 +491,7 @@ public class EntryServerAuthModule implements ServerAuthModule {
             // Check if the request has been authenticated.
             if (isAuthenticated(request)) {
 
-                trace(Level.INFO, "accessing page %s", request.getRequestURI());
+                TRACER.trace(Level.INFO, "accessing page %s", request.getRequestURI());
 
                 // Set the principals.
                 setPrincipals(request, clientSubject);
@@ -555,12 +505,12 @@ public class EntryServerAuthModule implements ServerAuthModule {
                 // Check if the request is for a secure page.
                 if (this.requestPolicy.isMandatory()) {
 
-                    trace(Level.INFO, "accessing secured page %s", request.getRequestURI());
+                    TRACER.trace(Level.INFO, "accessing secured page %s", request.getRequestURI());
                     respondWithLoginURL(request, response);
                 }
                 else {
 
-                    trace(Level.INFO, "accessing unsecured page %s", request.getRequestURI());
+                    TRACER.trace(Level.INFO, "accessing unsecured page %s", request.getRequestURI());
                     
                     // Validation is not required.
                     authStatus = AuthStatus.SUCCESS;
@@ -568,7 +518,7 @@ public class EntryServerAuthModule implements ServerAuthModule {
             }
         }
 
-        trace(Level.FINE, "validate request return %s", authStatus);
+        TRACER.trace(Level.FINE, "validate request return %s", authStatus);
         return authStatus;
     }
 }

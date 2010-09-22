@@ -21,7 +21,7 @@
             <c:set var="logoutHeaderText" value="Logout"/>
         </c:if>
         <c:choose>
-            <c:when test="#{!empty sessionScope['org.lazydog.entry.auth.module.retry']}">
+            <c:when test="#{!empty sessionScope['org.lazydog.entry.security.retry']}">
                 <c:set var="visibility" value="#{'visible'}"/>
             </c:when>
             <c:otherwise>
@@ -29,7 +29,7 @@
             </c:otherwise>
         </c:choose>
         <form action="entry-login" method="post">
-            <h:commandButton value="Login" onclick="showDiv('login-div'); return false;" rendered="#{empty sessionScope['org.lazydog.entry.auth.module.groups']}"/>
+            <h:commandButton value="Login" onclick="showDiv('login-div'); return false;" rendered="#{empty sessionScope['org.lazydog.entry.security.groups']}"/>
             <div id="login-div" style="background-color: #E0E0E0; font-family:sans-serif; font-size: 12px; position: absolute; visibility: #{visibility}; z-index: 1000; top: 50%; left: 50%; margin-top: -112px; margin-left: -225px; border:1px solid grey; width: 450px; height: 225px;">
                 <div style="overflow: hidden; height: 22px; margin: 5px;">
                     <span style="float: left;">
@@ -40,7 +40,7 @@
                 <div style="background-color: white; border:1px solid grey; margin: 0 5px 5px;">
                     <div style="height: 30px; padding: 10px; text-align: center;">
                         <c:choose>
-                            <c:when test="#{!empty sessionScope['org.lazydog.entry.auth.module.retry']}">
+                            <c:when test="#{!empty sessionScope['org.lazydog.entry.security.retry']}">
                                 <span style="color: red;">
                                     Your username/password is not valid.  Please try again.
                                 </span>
@@ -56,7 +56,7 @@
                                 <li style="display: block; overflow: hidden;">
                                     <label for="username" style="float: left; padding: 3px; text-align: right; width: 70px;">Username:</label>
                                     <h:inputText id="username"
-                                                 value="#{sessionScope['org.lazydog.entry.auth.module.username']}"
+                                                 value="#{sessionScope['org.lazydog.entry.security.username']}"
                                                  size="20"
                                                  maxlength="20"
                                                  style="float: right;"/>
@@ -82,7 +82,7 @@
             </div>
         </form>
         <form action="entry-logout" method="post">
-            <h:commandButton value="Logout" onclick="showDiv('logout-div'); return false;" rendered="#{!empty sessionScope['org.lazydog.entry.auth.module.groups']}"/>
+            <h:commandButton value="Logout" onclick="showDiv('logout-div'); return false;" rendered="#{!empty sessionScope['org.lazydog.entry.security.groups']}"/>
             <div id="logout-div" style="background-color: #E0E0E0; font-family:sans-serif; font-size: 12px; position: absolute; visibility: hidden; z-index: 1000; top: 50%; left: 50%; margin-top: -58px; margin-left: -200px; border:1px solid grey; width: 400px; height: 116px;">
                 <div style="height: 22px; margin: 5px; overflow: hidden;">
                     <span style="float: left;">

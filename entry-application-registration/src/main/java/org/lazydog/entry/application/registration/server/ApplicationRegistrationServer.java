@@ -1,10 +1,17 @@
 package org.lazydog.entry.application.registration.server;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.logging.Level;
+import javax.security.auth.message.config.AuthConfigFactory;
+import javax.security.auth.message.config.AuthConfigProvider;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import org.lazydog.entry.mbean.ApplicationRegistrationService;
+import org.lazydog.entry.security.config.EntryAuthConfigProvider;
 import org.lazydog.mbean.utilities.MBeanFactory;
 import org.lazydog.mbean.utilities.MBeanUtility;
+import org.lazydog.utility.Tracer;
 
 
 /**
@@ -14,6 +21,9 @@ import org.lazydog.mbean.utilities.MBeanUtility;
  */
 public class ApplicationRegistrationServer implements ServletContextListener {
 
+    private static final Tracer TRACER = Tracer.getTracer(ApplicationRegistrationServer.class.getName());
+    private AuthConfigFactory factory;
+    private AuthConfigProvider authConfigProvider;
 
     /**
      * Destroy the servlet context.
@@ -52,5 +62,22 @@ public class ApplicationRegistrationServer implements ServletContextListener {
         catch(Exception e) {
             e.printStackTrace();
         }
+
+        ApplicationRegistrationService applicationRegistrationService = MBeanFactory.create(ApplicationRegistrationService.class);
+
+        String applicationId = null;
+        String serverAuthModuleClass = applicationRegistrationService.getServerAuthModuleClass(applicationId);
+TRACER.trace(Level.FINE, "serverAuthModuleClass is %s", serverAuthModuleClass);
+
+        Map<String,String> options = new HashMap<String,String>();
+        options.put(EntryAuthConfigProvider.SERVER_AUTH_MODULE_CLASS_KEY, serverAuthModuleClass);
+        options.put(EntryAuthConfigProvider.CONTEXT_PATH_KEY, event.getServletContext().getContextPath());
+        options.put(EntryAuthConfigProvider.TRACE_LEVEL_KEY, "FINEST");
+
+        factory = AuthConfigFactory.getFactory();
+TRACER.trace(Level.INFO, "factory is %s", factory);
+        authConfigProvider = new EntryAuthConfigProvider(options, factory);
+TRACER.trace(Level.INFO, "authConfigProvider is %s", authConfigProvider);
+
     }
 }

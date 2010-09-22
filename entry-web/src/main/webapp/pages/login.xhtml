@@ -9,7 +9,7 @@
     </h:head>
     <h:body>
         <c:choose>
-            <c:when test="#{!empty sessionScope['org.lazydog.entry.auth.module.retry']}">
+            <c:when test="#{!empty sessionScope['org.lazydog.entry.security.retry']}">
                 Your username/password is not valid.  Please try again.
             </c:when>
             <c:otherwise>
@@ -22,7 +22,7 @@
                     <li>
                         <label for="username">Username: </label>
                         <h:inputText id="username"
-                                     value="#{sessionScope['org.lazydog.entry.auth.module.username']}"
+                                     value="#{sessionScope['org.lazydog.entry.security.username']}"
                                      size="25"
                                      maxlength="50"/>
                     </li>
@@ -37,7 +37,7 @@
             <h:inputHidden id="loginURL"
                            value="#{request.requestURI}"/>
             <h:inputHidden id="returnURL"
-                           value="#{sessionScope['org.lazydog.entry.auth.module.returnURL']}"/>
+                           value="#{sessionScope['org.lazydog.entry.security.returnURL']}"/>
             <h:commandButton value="Login"/>
         </form>
     </h:body>

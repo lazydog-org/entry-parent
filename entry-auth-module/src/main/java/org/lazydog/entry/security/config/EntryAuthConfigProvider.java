@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 import javax.security.auth.Subject;
 import javax.security.auth.callback.CallbackHandler;
 import javax.security.auth.message.AuthException;
@@ -18,7 +19,7 @@ import javax.security.auth.message.config.ClientAuthConfig;
 import javax.security.auth.message.config.ServerAuthConfig;
 import javax.security.auth.message.config.ServerAuthContext;
 import javax.security.auth.message.module.ServerAuthModule;
-import org.lazydog.entry.security.module.EntryServerAuthModule;
+import org.lazydog.utility.Tracer;
 
 
 /**
@@ -28,306 +29,407 @@ import org.lazydog.entry.security.module.EntryServerAuthModule;
  */
 public class EntryAuthConfigProvider implements AuthConfigProvider {
 
-    private static final String HTTPSERVLET = "HttpServlet";
-    private static final String IS_MANDATORY = "javax.security.auth.message.MessagePolicy.isMandatory";
-    private static final String DEFAULT_CALLBACK_HANDLER_CLASS = "com.sun.enterprise.security.jmac.callback.ContainerCallbackHandler";
-    private AuthConfigFactory factory;
+    private static final Tracer TRACER = Tracer.getTracer(EntryAuthConfigProvider.class.getName());
 
-    public EntryAuthConfigProvider(Map properties, AuthConfigFactory factory) {
-        this.factory = factory;
+    private static final String IS_MANDATORY_KEY = "javax.security.auth.message.MessagePolicy.isMandatory";
+    public static final String SUPPORTED_MESSAGE_LAYER = "HttpServlet";
+    
+    private static final String DEFAULT_CALLBACK_HANDLER_CLASS = "com.sun.enterprise.security.jmac.callback.ContainerCallbackHandler";
+    private static final String DEFAULT_SERVER_AUTH_MODULE_CLASS = "org.lazydog.entry.security.module.EntryServerAuthModule";
+    private static final Level DEFAULT_TRACE_LEVEL = Level.WARNING;
+    
+    public static final String CALLBACK_HANDLER_CLASS_KEY = "org.lazydog.entry.security.callbackHandlerClass";
+    public static final String CONTEXT_PATH_KEY = "org.lazydog.entry.security.contextPath";
+    public static final String SERVER_AUTH_MODULE_CLASS_KEY = "org.lazydog.entry.security.serverAuthModuleClass";
+    public static final String TRACE_LEVEL_KEY = "org.lazydog.entry.security.traceLevel";
+
+    private Map options;
+
+    /**
+     * Create the Entry authentication configuration provider.
+     *
+     * @param  options            the options.
+     * @param  authConfigFactory  the authentication configuration factory.
+     */
+    @SuppressWarnings("unchecked")
+    public EntryAuthConfigProvider(Map options, AuthConfigFactory authConfigFactory) {
+
+        // If the options is null, create an empty Map.
+        if (options == null) {
+            options = new HashMap();
+        }
+
+        // If there is no trace level option, use the default.
+        if (!options.containsKey(TRACE_LEVEL_KEY)) {
+            options.put(TRACE_LEVEL_KEY, DEFAULT_TRACE_LEVEL.getName());
+        }
+
+        // If there is no callback handler class option, use the default.
+        if (!options.containsKey(CALLBACK_HANDLER_CLASS_KEY)) {
+            options.put(CALLBACK_HANDLER_CLASS_KEY, DEFAULT_CALLBACK_HANDLER_CLASS);
+        }
+
+        // If there is no server authentication module class option, use the default.
+        if (!options.containsKey(SERVER_AUTH_MODULE_CLASS_KEY)) {
+            options.put(SERVER_AUTH_MODULE_CLASS_KEY, DEFAULT_SERVER_AUTH_MODULE_CLASS);
+        }
+
+        // Set the trace level to the level name or the default trace level.
+        TRACER.setLevel((String)options.get(TRACE_LEVEL_KEY), DEFAULT_TRACE_LEVEL);
+        TRACER.trace(Level.CONFIG, "%s is %s", TRACE_LEVEL_KEY, TRACER.getLevel());
+        TRACER.trace(Level.CONFIG, "%s is %s", CALLBACK_HANDLER_CLASS_KEY, (String)options.get(CALLBACK_HANDLER_CLASS_KEY));
+        TRACER.trace(Level.CONFIG, "%s is %s", SERVER_AUTH_MODULE_CLASS_KEY, (String)options.get(SERVER_AUTH_MODULE_CLASS_KEY));
+
+        // Check if the authentication configuration factory and a context path option exist.
+        if (authConfigFactory != null && options.containsKey(CONTEXT_PATH_KEY)) {
+
+            TRACER.trace(Level.CONFIG, "%s is %s", CONTEXT_PATH_KEY, (String)options.get(CONTEXT_PATH_KEY));
+
+            // Register the authentication configuration provider.
+            registerProvider(authConfigFactory, this, SUPPORTED_MESSAGE_LAYER, (String)options.get(CONTEXT_PATH_KEY));
+
+            // Remove the context path from the options (it is no longer needed.)
+            options.remove(CONTEXT_PATH_KEY);
+        }
+
+        this.options = options;
     }
 
     /**
-     * Get an instance of ClientAuthConfig from this provider.
+     * Get the application context.
      *
-     * <p> The implementation of this method returns a ClientAuthConfig
-     * instance that describes the configuration of ClientAuthModules
-     * at a given message layer, and for use in an identified application
-     * context.
+     * @param  contextPath  the context path.
      *
-     * @param layer a String identifying the message layer
-     *                for the returned ClientAuthConfig object.
-     *          This argument must not be null.
+     * @return  the application context.
+     */
+    private static String getAppContext(String contextPath) {
+        return new StringBuffer().append("server ").append(contextPath).toString();
+    }
+
+    /**
+     * Get the client authentication configuration.
      *
-     * @param appContext a String that identifies the messaging context
-     *          for the returned ClientAuthConfig object.
-     *          This argument must not be null.
+     * @param  layer            the message layer.
+     * @param  appContext       the application context.
+     * @param  callbackHandler  the callback handler.
      *
-     * @param handler a CallbackHandler to be passed to the ClientAuthModules
-     *                encapsulated by ClientAuthContext objects derived from
-     *                the returned ClientAuthConfig. This argument may be null,
-     *                in which case the implementation may assign a default
-     *                handler to the configuration.
+     * @return  the client authentication configuration.
      *
-     * @return a ClientAuthConfig Object that describes the configuration
-     *                of ClientAuthModules at the message layer and messaging
-     *                context identified by the layer and appContext arguments.
-     *                This method does not return null.
-     *
-     * @exception AuthException if this provider does not support the
-     *          assignment of a default CallbackHandler to the returned
-     *          ClientAuthConfig.
-     *
-     * @exception SecurityException if the caller does not have permission
-     *                to retrieve the configuration.
-     *
-     * The CallbackHandler assigned to the configuration must support
-     * the Callback objects required to be supported by the profile of this
-     * specification being followed by the messaging runtime.
-     * The CallbackHandler instance must be initialized with any application
-     * context needed to process the required callbacks
-     * on behalf of the corresponding application.
+     * @throws  AuthException  if unable to get the client authentication configuration.
      */
     @Override
     public ClientAuthConfig getClientAuthConfig
             (String layer, String appContext, CallbackHandler handler)
             throws AuthException {
-        // TODO: handle this.
         throw new AuthException("Not supported.");
     }
 
     /**
-     * Get an instance of ServerAuthConfig from this provider.
+     * Get the server authentication configuration.
      *
-     * <p> The implementation of this method returns a ServerAuthConfig
-     * instance that describes the configuration of ServerAuthModules
-     * at a given message layer, and for a particular application context.
+     * @param  layer            the message layer.
+     * @param  appContext       the application context.
+     * @param  callbackHandler  the callback handler.
      *
-     * @param layer a String identifying the message layer
-     *                for the returned ServerAuthConfig object.
-     *          This argument must not be null.
+     * @return  the server authentication configuration.
      *
-     * @param appContext a String that identifies the messaging context
-     *          for the returned ServerAuthConfig object.
-     *          This argument must not be null.
-     *
-     * @param handler a CallbackHandler to be passed to the ServerAuthModules
-     *                encapsulated by ServerAuthContext objects derived from
-     *                thr returned ServerAuthConfig. This argument may be null,
-     *                in which case the implementation may assign a default
-     *                handler to the configuration.
-     *
-     * @return a ServerAuthConfig Object that describes the configuration
-     *                of ServerAuthModules at a given message layer,
-     *                and for a particular application context.
-     *                This method does not return null.
-     *
-     * @exception AuthException if this provider does not support the
-     *          assignment of a default CallbackHandler to the returned
-     *          ServerAuthConfig.
-     *
-     * @exception SecurityException if the caller does not have permission
-     *                to retrieve the configuration.
-     * <p>
-     * The CallbackHandler assigned to the configuration must support
-     * the Callback objects required to be supported by the profile of this
-     * specification being followed by the messaging runtime.
-     * The CallbackHandler instance must be initialized with any application
-     * context needed to process the required callbacks
-     * on behalf of the corresponding application.
+     * @throws  AuthException  if unable to get the server authentication configuration.
      */
     @Override
     public ServerAuthConfig getServerAuthConfig(String layer, String appContext, CallbackHandler callbackHandler)
             throws AuthException {
-        return new EntryServerAuthConfig(layer, appContext, callbackHandler);
+        TRACER.trace(Level.FINEST, "entering getServerAuthConfig(%s, %s, %s)", layer, appContext, callbackHandler);
+        return new EntryServerAuthConfig(layer, appContext, callbackHandler, this.options);
     }
 
 
     /**
-     * Causes a dynamic configuration provider to update its internal
-     * state such that any resulting change to its state is reflected in
-     * the corresponding authentication context configuration objects
-     * previously created by the provider within the current process context.
-     *
-     * @exception AuthException if an error occured during the refresh.
-     *
-     * @exception SecurityException if the caller does not have permission
-     *                to refresh the provider.
+     * Refresh the internal state of this authentication configuration provider.
      */
     @Override
     public void refresh() {
+        TRACER.trace(Level.FINEST, "entering refresh()");
         throw new UnsupportedOperationException("Not supported.");
     }
 
-    protected class EntryServerAuthConfig implements ServerAuthConfig {
+    /**
+     * Register the authentication configuration provider.
+     *
+     * @param  authConfigFactory  the authentication configuration factory.
+     * @param  layer              the layer.
+     * @param  appContext         the context path.
+     */
+    private static void registerProvider(AuthConfigFactory authConfigFactory, AuthConfigProvider authConfigProvider, String layer, String contextPath) {
 
-        private String layer;
+        // Register this provider.
+        authConfigFactory.registerConfigProvider(authConfigProvider, layer, getAppContext(contextPath), null);
+
+        TRACER.trace(Level.INFO, "Registered authentication configuration provider %s (%s, %s)",
+                    authConfigProvider.getClass().getName(), layer, getAppContext(contextPath));
+    }
+
+    /**
+     * Entry server authentication configuration.
+     */
+    protected class EntryServerAuthConfig implements ServerAuthConfig {
+ 
         private String appContext;
         private CallbackHandler callbackHandler;
+        private String layer;
+        private Map options;
 
-        private EntryServerAuthConfig(String layer, String appContext, CallbackHandler callbackHandler) 
-                throws AuthException {
+        /**
+         * Create the Entry server authentication configuration.
+         *
+         * @param  layer            the message layer.
+         * @param  appContext       the application context.
+         * @param  callbackHandler  the callback handler.
+         * @param  options          the options.
+         */
+        protected EntryServerAuthConfig(String layer, String appContext, CallbackHandler callbackHandler, Map options) {
+
+            TRACER.trace(Level.FINEST, "entering EntryServerAuthContext(%s, %s, %s, %s)", layer, appContext, callbackHandler, options);
 
             this.layer = layer;
             this.appContext = appContext;
-
-            if (callbackHandler == null) {
-
-                try {
-
-                    ClassLoader loader = Thread.currentThread().getContextClassLoader();
-                    Class c = Class.forName(DEFAULT_CALLBACK_HANDLER_CLASS, true, loader);
-                    this.callbackHandler = (CallbackHandler)c.newInstance();
-                }
-                catch(Exception e) {
-                    AuthException authException = new AuthException();
-                    authException.initCause(e);
-                    throw authException;
-                }
-            }
-        }
-
-        @Override
-        public ServerAuthContext getAuthContext(String authContextID, Subject serviceSubject, Map options)
-                throws AuthException {
-            return new EntryServerAuthContext(authContextID, callbackHandler, options);
+            this.callbackHandler = callbackHandler;
+            this.options = options;
         }
 
         /**
-         * Get the message layer name of this authentication context
-	 * configuration object.
+         * Get the server authentication context.
          *
-         * @return the message layer name of this configuration object, or null
-         * if the configuration object pertains to an unspecified message
-	 * layer.
+         * @param  authContextID   the authentication context
+         * @param  serviceSubject  the service subject.
+         * @param  options         the options.
+         *
+         * @return  the server authentication context.
+         *
+         * @throws  AuthException  if unable to get the server authentication context.
+         */
+        @Override
+        @SuppressWarnings("unchecked")
+        public ServerAuthContext getAuthContext(String authContextID, Subject serviceSubject, Map options)
+                throws AuthException {
+
+            TRACER.trace(Level.FINEST, "entering EntryServerAuthConfig.getAuthContext(%s, %s, %s)", authContextID, serviceSubject, options);
+
+            // Check if there are options.
+            if (options != null && !options.isEmpty()) {
+
+                // Add the options to the options.
+                this.options.putAll(options);
+            }
+
+            return new EntryServerAuthContext(authContextID, this.callbackHandler, this.options);
+        }
+
+        /**
+         * Get the message layer.
+         *
+         * @return  the message layer.
          */
         @Override
         public String getMessageLayer() {
-            return layer;
+            TRACER.trace(Level.FINEST, "entering EntryServerAuthConfig.getMessageLayer()");
+            return this.layer;
         }
 
         /**
-         * Get the application context identifier of this authentication
-         * context configuration object.
+         * Get the application context.
          *
-         * @return the String identifying the application context of this
-         * configuration object or null if the configuration object pertains
-         * to an unspecified application context.
+         * @return  the application context.
          */
         @Override
         public String getAppContext() {
-            return appContext;
+            TRACER.trace(Level.FINEST, "entering EntryServerAuthConfig.getAppContext()");
+            return this.appContext;
         }
 
 	/**
-	 * Get the authentication context identifier corresponding to the
-	 * request and response objects encapsulated in messageInfo.
+	 * Get the authentication context identifier.
 	 *
-	 * @param messageInfo a contextual Object that encapsulates the
-	 *          client request and server response objects.
+	 * @param  messageInfo  the message information.
 	 *
-	 * @return the authentication context identifier corresponding to the
-	 *          encapsulated request and response objects, or null.
+	 * @return the authentication context identifier.
 	 *
-	 * @throws IllegalArgumentException if the type of the message
-	 * objects incorporated in messageInfo are not compatible with
-	 * the message types supported by this
-	 * authentication context configuration object.
+	 * @throws  IllegalArgumentException  if the message layer is unsupported.
 	 */
         @Override
         public String getAuthContextID(MessageInfo messageInfo) {
-            if (EntryAuthConfigProvider.HTTPSERVLET.equals(layer)) {
-		String isMandatoryStr =
-		    (String)messageInfo.getMap().get(IS_MANDATORY);
-		return Boolean.valueOf(isMandatoryStr).toString();
-	    } else {
-                return null;
+
+            TRACER.trace(Level.FINEST, "entering EntryServerAuthConfig.getAuthContextID(%s)", messageInfo);
+
+            // Check if the message layer is the supported message layer.
+            if (!SUPPORTED_MESSAGE_LAYER.equals(this.layer)) {
+                throw new IllegalArgumentException("The message layer is unsupported.");
             }
+
+            TRACER.trace(Level.FINE, "authContextID is %s", Boolean.valueOf((String)messageInfo.getMap().get(IS_MANDATORY_KEY)).toString());
+
+            // The authentication context identifier is "true" or "false".
+            return Boolean.valueOf((String)messageInfo.getMap().get(IS_MANDATORY_KEY)).toString();
         }
 
-        // we should be able to replace the following with a method on packet
-
         /**
-         * Causes a dynamic anthentication context configuration object to
-         * update the internal state that it uses to process calls to its
-         * <code>getAuthContext</code> method.
-         *
-         * @exception AuthException if an error occured during the update.
-         *
-         * @exception SecurityException if the caller does not have permission
-         *                to refresh the configuration object.
+         * Refresh the internal state of this server authentication configuration.
          */
         @Override
         public void refresh() {
+            TRACER.trace(Level.FINEST, "entering EntryServerAuthConfig.refresh()");
             throw new UnsupportedOperationException("Not supported.");
         }
 
 	/**
-	 * Used to determine whether or not the <code>getAuthContext</code>
-	 * method of the authentication context configuration will return null
-	 * for all possible values of authentication context identifier.
-	 *
-	 * @return false when <code>getAuthContext</code> will return null for
-	 *        all possible values of authentication context identifier.
-	 *        Otherwise, this method returns true.
+	 * Check if the server authentication configuration is protected.
+         *
+         * @return  true if the server authentication configuration is protected, otherwise false.
 	 */
         @Override
 	public boolean isProtected() {
+            TRACER.trace(Level.FINEST, "entering EntryServerAuthConfig.isProtected()");
 	    return true;
 	}
     }
 
+    /**
+     * Entry server authentication context.
+     */
     protected class EntryServerAuthContext implements ServerAuthContext {
 
         private ServerAuthModule serverAuthModule;
 
-        private EntryServerAuthContext(String authContextID, CallbackHandler callbackHandler, Map options)
+        /**
+         * Create the Entry server authentication context.
+         *
+         * @param  layer            the authentication context identifier.
+         * @param  callbackHandler  the callback handler.
+         * @param  options          the options.
+         */
+        protected EntryServerAuthContext(String authContextID, CallbackHandler callbackHandler, Map options)
                 throws AuthException {
 
-            List<TargetPolicy> targetPolicies = new ArrayList<TargetPolicy>();
-            targetPolicies.add(new TargetPolicy(null,
-                new ProtectionPolicy() {
-                    @Override
-                    public String getID() {
-                        return ProtectionPolicy.AUTHENTICATE_SENDER;
-                    }
-                })
-            );
-            MessagePolicy requestPolicy = new MessagePolicy(
-                    targetPolicies.toArray(new TargetPolicy[targetPolicies.size()]),
-                    Boolean.parseBoolean(authContextID));
+            TRACER.trace(Level.FINEST, "entering EntryServerAuthContext(%s, %s, %s)", authContextID, callbackHandler, options);
 
-            this.serverAuthModule = new EntryServerAuthModule();
+            try {
+                
+                // Declare.
+                List<TargetPolicy> targetPolicies;
+                MessagePolicy requestPolicy;
 
-            if (options == null) {
-                options = new HashMap<String,String>();
+                // If the callback handler does not exist, get the callback handler in the options.
+                if (callbackHandler == null) {
+                    callbackHandler = (CallbackHandler)createObject((String)options.get(CALLBACK_HANDLER_CLASS_KEY));
+                }
+
+                // Get the server auth module in the options.
+                this.serverAuthModule = (ServerAuthModule)createObject((String)options.get(SERVER_AUTH_MODULE_CLASS_KEY));
+
+                targetPolicies = new ArrayList<TargetPolicy>();
+                targetPolicies.add(new TargetPolicy(null,
+                    new ProtectionPolicy() {
+                        @Override
+                        public String getID() {
+                            return ProtectionPolicy.AUTHENTICATE_SENDER;
+                        }
+                    })
+                );
+
+                requestPolicy = new MessagePolicy(
+                        targetPolicies.toArray(new TargetPolicy[targetPolicies.size()]),
+                        Boolean.parseBoolean(authContextID));
+
+                this.serverAuthModule.initialize(requestPolicy, null, callbackHandler, options);
             }
+            catch(Exception e) {
 
-            this.serverAuthModule.initialize(requestPolicy, null, callbackHandler, options);
+                // Declare.
+                AuthException authException;
+
+                authException = new AuthException();
+                authException.initCause(e);
+                throw authException;
+            }
         }
 
+        /**
+         * Clean the subject.
+         *
+         * @param  messageInfo  the message information.
+         * @param  subject      the subject.
+         *
+         * @throws  AuthException  if unable to clean the subject.
+         */
+        @Override
+        public void cleanSubject(MessageInfo messageInfo, Subject subject)
+                throws AuthException {
+            TRACER.trace(Level.FINEST, "entering EntryServerAuthContext.cleanSubject(%s, %s)", messageInfo, subject);
+            serverAuthModule.cleanSubject(messageInfo, subject);
+        }
+
+        /**
+         * Create the object.
+         *
+         * @param  className  the class name for the object.
+         *
+         * @return  the object.
+         *
+         * @throws  ClassNotFoundException  if the class is not found.
+         * @throws  IllegalAccessException  if the class is not accessible.
+         * @throws  InstantiationException  if the class instantiation fails.
+         */
+        private Object createObject(String className)
+                throws ClassNotFoundException, IllegalAccessException, InstantiationException {
+
+            // Declare.
+            ClassLoader classLoader;
+            Class objectClass;
+
+            // Get the class loader.
+            classLoader = Thread.currentThread().getContextClassLoader();
+
+            // Create the class.
+            objectClass = Class.forName(className, true, classLoader);
+
+            // Create the object from the class.
+            return objectClass.newInstance();
+        }
+
+        /**
+         * Secure the response before sending it to the client.
+         *
+         * @param  messageInfo     the message information.
+         * @param  serviceSubject  the service subject.
+         *
+         * @return  AuthStatus.SEND_SUCCESS indicating the response is secure.
+         *
+         * @throws  AuthException  if unable to secure the response.
+         */
+        @Override
+        public AuthStatus secureResponse(MessageInfo messageInfo,
+                Subject serviceSubject) throws AuthException {
+            TRACER.trace(Level.FINEST, "entering EntryServerAuthContext.secureResponse(%s, %s)", messageInfo, serviceSubject);
+            return serverAuthModule.secureResponse(messageInfo, serviceSubject);
+        }
+
+        /**
+         * Validate the request.
+         *
+         * @param  messageInfo     the message information.
+         * @param  clientSubject   the client subject.
+         * @param  serviceSubject  the service subject.
+         *
+         * @return  AuthStatus.SUCCESS indicating the request was successfully validated
+         *          or AuthStatus.SEND_CONTINUE indicating the request validation is incomplete.
+         *
+         * @throws  AuthException  if unable to validate the request.
+         */
         @Override
         public AuthStatus validateRequest(MessageInfo messageInfo,
                 Subject clientSubject, Subject serviceSubject)
                 throws AuthException {
-
-            if (serverAuthModule == null) {
-                throw new AuthException();
-            }
-
+            TRACER.trace(Level.FINEST, "entering EntryServerAuthContext.validateRequest(%s, %s, %s)", messageInfo, clientSubject, serviceSubject);
             return serverAuthModule.validateRequest(messageInfo, clientSubject, serviceSubject);
-        }
-
-        @Override
-        public AuthStatus secureResponse(MessageInfo messageInfo,
-                Subject serviceSubject) throws AuthException {
-
-            if (serverAuthModule == null) {
-                throw new AuthException();
-            }
-
-            return serverAuthModule.secureResponse(messageInfo, serviceSubject);
-        }
-
-        @Override
-        public void cleanSubject(MessageInfo messageInfo, Subject subject)
-                throws AuthException {
-
-            if (serverAuthModule == null) {
-                 throw new AuthException();
-            }
-
-            serverAuthModule.cleanSubject(messageInfo, subject);
         }
     }
 }

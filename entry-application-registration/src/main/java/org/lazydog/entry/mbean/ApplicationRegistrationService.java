@@ -12,11 +12,11 @@ import javax.management.MXBean;
 public interface ApplicationRegistrationService {
 
     /**
-     * Get the server authentication module.
+     * Get the server authentication module class.
      *
      * @param  applicationId  the application ID.
      *
-     * @return  the server authentication module.
+     * @return  the server authentication module class.
      */
-    public String getServerAuthModule(String applicationId);
+    public String getServerAuthModuleClass(String applicationId);
 }
