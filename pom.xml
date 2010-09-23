@@ -96,6 +96,9 @@
         <module>entry-repository</module>
         <module>entry-repository-ejb</module>
 	<module>entry-service-ejb</module>
+        <module>entry-application-manager</module>
+        <module>entry-application-manager-client</module>
+        <module>entry-application-manager-server</module>
 	<module>entry-ejbs-ear</module>
         <module>entry-web</module>
         <module>entry-ear</module>
