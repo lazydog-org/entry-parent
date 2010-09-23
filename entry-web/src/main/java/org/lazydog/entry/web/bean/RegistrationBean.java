@@ -3,6 +3,7 @@ package org.lazydog.entry.web.bean;
 import javax.ejb.EJB;
 import javax.annotation.PostConstruct;
 import javax.faces.bean.ManagedBean;
+import javax.faces.bean.ManagedProperty;
 import javax.faces.bean.RequestScoped;
 import org.lazydog.entry.EntryService;
 import org.lazydog.entry.model.UserProfile;
@@ -17,9 +18,20 @@ import org.lazydog.entry.model.UserProfile;
 @RequestScoped
 public class RegistrationBean {
 
+    @ManagedProperty(value="#{param.defaultGroupName}")
+    private String defaultGroupName;
     @EJB(beanName="ejb/EntryService", beanInterface=EntryService.class)
     private EntryService entryService;
     private UserProfile userProfile;
+
+    /**
+     * Get the default group name.
+     * 
+     * @return  the default group name.
+     */
+    public String getDefaultGroupName() {
+        return this.defaultGroupName;
+    }
 
     /**
      * Get the user profile.
@@ -29,6 +41,7 @@ public class RegistrationBean {
     public UserProfile getUserProfile() {
         return this.userProfile;
     }
+
 
     /**
      * Initialize.
@@ -54,7 +67,7 @@ public class RegistrationBean {
         try {
 
             // Register the user profile.
-            outcome = (entryService.register(userProfile)) ? "success" : "failure";
+            outcome = (entryService.register(userProfile, defaultGroupName)) ? "success" : "failure";
         }
         catch(Exception e) {
 e.printStackTrace();
@@ -62,6 +75,15 @@ e.printStackTrace();
         }
 
         return "protected?faces-redirect=true";
+    }
+
+    /**
+     * Set the default group name.
+     * 
+     * @param  defaultGroupName  the default group name.
+     */
+    public void setDefaultGroupName(String defaultGroupName) {
+        this.defaultGroupName = defaultGroupName;
     }
 
     /**

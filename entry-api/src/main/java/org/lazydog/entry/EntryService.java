@@ -18,7 +18,7 @@ public interface EntryService {
 
     public void modify(UserProfile userProfile);
     
-    public boolean register(UserProfile userProfile);
+    public boolean register(UserProfile userProfile, String defaultGroupName);
 
     public boolean unregister(String username);
 }

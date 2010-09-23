@@ -6,8 +6,6 @@ import java.util.Properties;
 import java.util.logging.Level;
 import javax.annotation.Resource;
 import javax.security.auth.message.config.AuthConfigFactory;
-import javax.security.auth.message.config.AuthConfigProvider;
-import javax.security.auth.message.config.ServerAuthConfig;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.servlet.annotation.WebListener;
@@ -30,6 +28,7 @@ public class ApplicationManagerClient implements ServletContextListener {
     private static final Level DEFAULT_TRACE_LEVEL = Level.FINEST;
 
     private static final String APPLICATION_ID_KEY = "org.lazydog.entry.application.manager.applicationId";
+    private static final String DEFAULT_GROUP_NAME_KEY = "org.lazydog.entry.application.manager.defaultGroupName";
     private static final String TRACE_LEVEL_KEY = "org.lazydog.entry.application.manager.traceLevel";
 
     @Resource(name="EntryApplicationManagerEnvironment")
@@ -49,23 +48,6 @@ public class ApplicationManagerClient implements ServletContextListener {
             // Unregister the authentication module.
             unregisterAuthModule(this.registrationID);
             TRACER.trace(Level.INFO, "unregistered the authentication module (%s)", registrationID);
-
-            AuthConfigFactory factory = AuthConfigFactory.getFactory();
-            String[] registrationIDs = factory.getRegistrationIDs(null);
-            for (String registrationID : registrationIDs) {
-TRACER.trace(Level.INFO, "registrationID is %s", registrationID);
-                AuthConfigFactory.RegistrationContext registrationContext = factory.getRegistrationContext(registrationID);
-                String layer = registrationContext.getMessageLayer();
-TRACER.trace(Level.INFO, "layer is %s", layer);
-                String appContext = registrationContext.getAppContext();
-TRACER.trace(Level.INFO, "appContext is %s", appContext);
-                AuthConfigProvider authConfigProvider = factory.getConfigProvider(layer, appContext, null);
-TRACER.trace(Level.INFO, "authConfigProvider is %s", authConfigProvider);
-                if (authConfigProvider != null) {
-                    ServerAuthConfig serverAuthConfig = authConfigProvider.getServerAuthConfig(layer, appContext, null);
-TRACER.trace(Level.INFO, "serverAuthConfig is %s", serverAuthConfig);
-                }
-            }
         }
         catch(Exception e) {
             e.printStackTrace();
@@ -85,6 +67,7 @@ TRACER.trace(Level.INFO, "serverAuthConfig is %s", serverAuthConfig);
             String applicationId;
             ApplicationManager applicationManager;
             String authModuleClassName;
+            String defaultGroupName;
 
             // Set the trace level to the configured trace level or the default trace level.
             TRACER.setLevel(event.getServletContext().getInitParameter(TRACE_LEVEL_KEY), DEFAULT_TRACE_LEVEL);
@@ -99,32 +82,23 @@ TRACER.trace(Level.INFO, "serverAuthConfig is %s", serverAuthConfig);
             TRACER.trace(Level.CONFIG, "%s is %s", MBeanUtility.JMX_LOGIN_KEY, environment.getProperty(MBeanUtility.JMX_LOGIN_KEY));
             TRACER.trace(Level.CONFIG, "%s is %s", MBeanUtility.JMX_PASSWORD_KEY, environment.getProperty(MBeanUtility.JMX_PASSWORD_KEY));
 
+            // Get the application manager.
             applicationManager = MBeanUtility.getMBean(ApplicationManager.class, environment);
 
+            // Get the authentication module class name.
             authModuleClassName = applicationManager.getAuthModuleClassName(applicationId);
-TRACER.trace(Level.FINE, "authModuleClassName is %s", authModuleClassName);
-
+            TRACER.trace(Level.FINE, "authModuleClassName is %s", authModuleClassName);
 
             // Register the authentication module.
             this.registrationID = registerAuthModule(authModuleClassName, event.getServletContext().getContextPath());
             TRACER.trace(Level.INFO, "registered the authentication module %s (%s) for %s", authModuleClassName, registrationID, event.getServletContext().getContextPath());
 
-            AuthConfigFactory factory = AuthConfigFactory.getFactory();
-            String[] registrationIDs = factory.getRegistrationIDs(null);
-            for (String registrationID : registrationIDs) {
-TRACER.trace(Level.INFO, "registrationID is %s", registrationID);
-                AuthConfigFactory.RegistrationContext registrationContext = factory.getRegistrationContext(registrationID);
-                String layer = registrationContext.getMessageLayer();
-TRACER.trace(Level.INFO, "layer is %s", layer);
-                String appContext = registrationContext.getAppContext();
-TRACER.trace(Level.INFO, "appContext is %s", appContext);
-                AuthConfigProvider authConfigProvider = factory.getConfigProvider(layer, appContext, null);
-TRACER.trace(Level.INFO, "authConfigProvider is %s", authConfigProvider);
-                if (authConfigProvider != null) {
-                    ServerAuthConfig serverAuthConfig = authConfigProvider.getServerAuthConfig(layer, appContext, null);
-TRACER.trace(Level.INFO, "serverAuthConfig is %s", serverAuthConfig);
-                }
-            }
+            // Get the default group name.
+            defaultGroupName = applicationManager.getDefaultGroupName(applicationId);
+            TRACER.trace(Level.FINE, "defaultGroupName is %s", defaultGroupName);
+
+            // Put the default group name in the application scope.
+            event.getServletContext().setAttribute(DEFAULT_GROUP_NAME_KEY, defaultGroupName);
         }
         catch(Exception e) {
             e.printStackTrace();

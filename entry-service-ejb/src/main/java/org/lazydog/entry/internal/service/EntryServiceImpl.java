@@ -1,7 +1,8 @@
 package org.lazydog.entry.internal.service;
 
 import java.util.Date;
-import java.util.UUID;
+import java.util.HashSet;
+import java.util.Set;
 import javax.ejb.EJB;
 import javax.ejb.Local;
 import javax.ejb.Singleton;
@@ -129,29 +130,23 @@ public class EntryServiceImpl implements EntryService {
     }
 
     /**
-     * Generate a UUID.
-     * 
-     * @return  the generated UUID.
-     */
-    private static String generateUuid() {
-        return UUID.randomUUID().toString();
-    }
-
-    /**
-     * Register the user profile.
+     * Register the user profile and add the user account to the default group.
      *
-     * @param  userProfile  the user profile.
-     * @param  password     the password.
+     * @param  userProfile       the user profile.
+     * @param  defaultGroupName  the default group name.
+     *
+     * @return  true if the user account exists, otherwise false.
      */
     @Override
-    public boolean register(UserProfile userProfile) {
+    public boolean register(UserProfile userProfile, String defaultGroupName) {
+
+        // Declare.
+        Set<String> accountNames;
 
         // Set the register time, modify time, activation code, 
         // and UUID for the user profile.
         userProfile.setRegisterTime(new Date());
         userProfile.setModifyTime(userProfile.getRegisterTime());
-        userProfile.setActivationCode(generateUuid());
-        userProfile.setUuid(generateUuid());
 
         // Persist the user profile.
         entryRepository.persist(userProfile);
@@ -161,6 +156,11 @@ public class EntryServiceImpl implements EntryService {
 
         // Lock the user account.
 //entryAccountManager.lockAccount(userProfile.getUsername());
+        
+        // Add the user account to the default group.
+        accountNames = new HashSet<String>();
+        accountNames.add(userProfile.getUsername());
+        entryAccountManager.addMembers(defaultGroupName, accountNames);
 
         return entryAccountManager.accountExists(userProfile.getUsername());
     }

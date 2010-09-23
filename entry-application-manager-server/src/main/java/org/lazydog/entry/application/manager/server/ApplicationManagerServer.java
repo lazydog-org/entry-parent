@@ -86,6 +86,7 @@ public class ApplicationManagerServer implements ServletContextListener {
 
             // Get the authentication module class name.
             authModuleClassName = applicationManager.getAuthModuleClassName(applicationId);
+            TRACER.trace(Level.FINE, "authModuleClassName is %s", authModuleClassName);
 // TODO: remove this.
 authModuleClassName = "org.lazydog.entry.security.module.PageServerAuthModule";
 
