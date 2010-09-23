@@ -100,8 +100,8 @@
         <module>entry-application-manager</module>
         <module>entry-application-manager-client</module>
         <module>entry-application-manager-server</module>
+        <module>entry-faces-ui</module>
         <module>entry-web</module>
         <module>entry-ear</module>
-        <module>entry-faces-ui</module>
   </modules>
 </project>
