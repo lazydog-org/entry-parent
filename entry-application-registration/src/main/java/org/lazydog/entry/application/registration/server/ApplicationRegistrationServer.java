@@ -9,7 +9,6 @@ import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import org.lazydog.entry.mbean.ApplicationRegistrationService;
 import org.lazydog.entry.security.config.EntryAuthConfigProvider;
-import org.lazydog.mbean.utilities.MBeanFactory;
 import org.lazydog.mbean.utilities.MBeanUtility;
 import org.lazydog.utility.Tracer;
 
@@ -34,8 +33,7 @@ public class ApplicationRegistrationServer implements ServletContextListener {
         try {
 
             // Unregister the MBean.
-            MBeanUtility.unregister(
-                    MBeanUtility.getObjectName(ApplicationRegistrationService.class));
+            MBeanUtility.unregister(ApplicationRegistrationService.class);
         }
         catch(Exception e) {
             e.printStackTrace();
@@ -52,31 +50,35 @@ public class ApplicationRegistrationServer implements ServletContextListener {
 
         try {
 
+            // Declare.
+            String applicationId;
+            ApplicationRegistrationService applicationRegistrationService;
+            String serverAuthModuleClass;
+
+applicationId = null;
+
             // Register the MBean.
-            MBeanUtility.register(
-                    MBeanUtility.getObjectName(ApplicationRegistrationService.class),
-                    MBeanFactory.create(ApplicationRegistrationService.class));
+            MBeanUtility.register(ApplicationRegistrationService.class);
+
+            // Get the application registration service.
+            applicationRegistrationService = MBeanUtility.getMBean(ApplicationRegistrationService.class);
+
+            // Get the server authentication module class.
+            serverAuthModuleClass = applicationRegistrationService.getServerAuthModuleClass(applicationId);
+TRACER.trace(Level.FINE, "serverAuthModuleClass is %s", serverAuthModuleClass);
+serverAuthModuleClass = "org.lazydog.entry.security.module.PageServerAuthModule";
+
+            Map<String,String> options = new HashMap<String,String>();
+            options.put(EntryAuthConfigProvider.SERVER_AUTH_MODULE_CLASS_KEY, serverAuthModuleClass);
+            options.put(EntryAuthConfigProvider.CONTEXT_PATH_KEY, event.getServletContext().getContextPath());
+            options.put(EntryAuthConfigProvider.TRACE_LEVEL_KEY, "INFO");
+
+            AuthConfigFactory factory = AuthConfigFactory.getFactory();
+            AuthConfigProvider authConfigProvider = new EntryAuthConfigProvider(options, factory);
+TRACER.trace(Level.INFO, "authConfigProvider is %s", authConfigProvider);
         }
         catch(Exception e) {
             e.printStackTrace();
         }
-
-        ApplicationRegistrationService applicationRegistrationService = MBeanFactory.create(ApplicationRegistrationService.class);
-
-        String applicationId = null;
-        String serverAuthModuleClass = applicationRegistrationService.getServerAuthModuleClass(applicationId);
-TRACER.trace(Level.FINE, "serverAuthModuleClass is %s", serverAuthModuleClass);
-        serverAuthModuleClass = "org.lazydog.entry.security.module.PageServerAuthModule";
-
-        Map<String,String> options = new HashMap<String,String>();
-        options.put(EntryAuthConfigProvider.SERVER_AUTH_MODULE_CLASS_KEY, serverAuthModuleClass);
-        options.put(EntryAuthConfigProvider.CONTEXT_PATH_KEY, event.getServletContext().getContextPath());
-        options.put(EntryAuthConfigProvider.TRACE_LEVEL_KEY, "INFO");
-
-        AuthConfigFactory factory = AuthConfigFactory.getFactory();
-TRACER.trace(Level.INFO, "factory is %s", factory);
-        AuthConfigProvider authConfigProvider = new EntryAuthConfigProvider(options, factory);
-TRACER.trace(Level.INFO, "authConfigProvider is %s", authConfigProvider);
-
     }
 }
