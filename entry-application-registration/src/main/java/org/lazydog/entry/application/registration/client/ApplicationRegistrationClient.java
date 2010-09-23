@@ -4,12 +4,14 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 import java.util.logging.Level;
+import javax.annotation.Resource;
 import javax.security.auth.message.config.AuthConfigFactory;
 import javax.security.auth.message.config.AuthConfigProvider;
 import javax.security.auth.message.config.ServerAuthConfig;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
-import org.lazydog.entry.mbean.ApplicationRegistrationService;
+import javax.servlet.annotation.WebListener;
+import org.lazydog.entry.mbean.ApplicationManager;
 import org.lazydog.entry.security.config.EntryAuthConfigProvider;
 import org.lazydog.mbean.utilities.MBeanUtility;
 import org.lazydog.utility.Tracer;
@@ -20,19 +22,18 @@ import org.lazydog.utility.Tracer;
  *
  * @author  Ron Rickard
  */
+@WebListener
 public class ApplicationRegistrationClient implements ServletContextListener {
 
     private static final Tracer TRACER = Tracer.getTracer(ApplicationRegistrationClient.class.getName());
 
     private static final String APPLICATION_ID_KEY = "applicationId";
-    public static final String JMX_HOST_KEY = "jmxHost";
-    public static final String JMX_PORT_KEY = "jmxPort";
-    public static final String JMX_LOGIN_KEY = "jmxLogin";
-    public static final String JMX_PASSWORD_KEY = "jmxPassword";
-    public static final String TRACE_LEVEL_KEY = "trace.level";
+    public static final String TRACE_LEVEL_KEY = "traceLevel";
 
     private static final Level DEFAULT_TRACE_LEVEL = Level.FINEST;
     
+    @Resource(name="EntryApplicationRegistrationEnvironment")
+    private Properties environment;
 
     /**
      * Destroy the servlet context.
@@ -61,8 +62,7 @@ public class ApplicationRegistrationClient implements ServletContextListener {
         try {
             // Declare.
             String applicationId;
-            ApplicationRegistrationService applicationRegistrationService;
-            Properties environment;
+            ApplicationManager applicationRegistrationService;
             String serverAuthModuleClass;
 
             // Set the trace level to the level name or the default trace level.
@@ -72,17 +72,12 @@ public class ApplicationRegistrationClient implements ServletContextListener {
             applicationId = event.getServletContext().getInitParameter(APPLICATION_ID_KEY);
 TRACER.trace(Level.INFO, "%s is %s", APPLICATION_ID_KEY, applicationId);
 
-            // Set the remote environment properties.
-            environment = new Properties();
-            environment.put(MBeanUtility.JMX_HOST_KEY, event.getServletContext().getInitParameter(JMX_HOST_KEY));
-            environment.put(MBeanUtility.JMX_PORT_KEY, event.getServletContext().getInitParameter(JMX_PORT_KEY));
-            environment.put(MBeanUtility.JMX_LOGIN_KEY, event.getServletContext().getInitParameter(JMX_LOGIN_KEY));
-            environment.put(MBeanUtility.JMX_PASSWORD_KEY, event.getServletContext().getInitParameter(JMX_PASSWORD_KEY));
-TRACER.trace(Level.FINE, "%s is %s", JMX_HOST_KEY, event.getServletContext().getInitParameter(JMX_HOST_KEY));
-TRACER.trace(Level.FINE, "%s is %s", JMX_PORT_KEY, event.getServletContext().getInitParameter(JMX_PORT_KEY));
-TRACER.trace(Level.FINE, "%s is %s", JMX_LOGIN_KEY, event.getServletContext().getInitParameter(JMX_LOGIN_KEY));
-TRACER.trace(Level.FINE, "%s is %s", JMX_PASSWORD_KEY, event.getServletContext().getInitParameter(JMX_PASSWORD_KEY));
-            applicationRegistrationService = MBeanUtility.getMBean(ApplicationRegistrationService.class, environment);
+            TRACER.trace(Level.CONFIG, "%s is %s", MBeanUtility.JMX_HOST_KEY, environment.getProperty(MBeanUtility.JMX_HOST_KEY));
+            TRACER.trace(Level.CONFIG, "%s is %s", MBeanUtility.JMX_PORT_KEY, environment.getProperty(MBeanUtility.JMX_PORT_KEY));
+            TRACER.trace(Level.CONFIG, "%s is %s", MBeanUtility.JMX_LOGIN_KEY, environment.getProperty(MBeanUtility.JMX_LOGIN_KEY));
+            TRACER.trace(Level.CONFIG, "%s is %s", MBeanUtility.JMX_PASSWORD_KEY, environment.getProperty(MBeanUtility.JMX_PASSWORD_KEY));
+
+            applicationRegistrationService = MBeanUtility.getMBean(ApplicationManager.class, environment);
 
             serverAuthModuleClass = applicationRegistrationService.getServerAuthModuleClass(applicationId);
 TRACER.trace(Level.FINE, "serverAuthModuleClass is %s", serverAuthModuleClass);

@@ -7,28 +7,9 @@
     version="3.0">
     <display-name>Test</display-name>
     <description>Test</description>
-    <listener>
-        <listener-class>org.lazydog.entry.application.registration.client.ApplicationRegistrationClient</listener-class>
-    </listener>
     <context-param>
-        <param-name>applicationId</param-name>
+        <param-name>org.lazydog.entry.application.manager.applicationId</param-name>
         <param-value>Test</param-value>
-    </context-param>
-    <context-param>
-        <param-name>jmxHost</param-name>
-        <param-value>localhost</param-value>
-    </context-param>
-    <context-param>
-        <param-name>jmxPort</param-name>
-        <param-value>8686</param-value>
-    </context-param>
-    <context-param>
-        <param-name>login</param-name>
-        <param-value>admin</param-value>
-    </context-param>
-    <context-param>
-        <param-name>password</param-name>
-        <param-value>adminadmin</param-value>
     </context-param>
     <context-param>
         <param-name>javax.faces.PROJECT_STAGE</param-name>

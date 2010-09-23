@@ -34,16 +34,17 @@ public class EntryAuthConfigProvider implements AuthConfigProvider {
     private static final String IS_MANDATORY_KEY = "javax.security.auth.message.MessagePolicy.isMandatory";
     public static final String SUPPORTED_MESSAGE_LAYER = "HttpServlet";
     
-    private static final String DEFAULT_CALLBACK_HANDLER_CLASS = "com.sun.enterprise.security.jmac.callback.ContainerCallbackHandler";
-    private static final String DEFAULT_SERVER_AUTH_MODULE_CLASS = "org.lazydog.entry.security.module.EntryServerAuthModule";
+    private static final String DEFAULT_CALLBACK_HANDLER_CLASS_NAME = "com.sun.enterprise.security.jmac.callback.ContainerCallbackHandler";
+    private static final String DEFAULT_SERVER_AUTH_MODULE_CLASS_NAME = "org.lazydog.entry.security.module.ModalServerAuthModule";
     private static final Level DEFAULT_TRACE_LEVEL = Level.WARNING;
     
-    public static final String CALLBACK_HANDLER_CLASS_KEY = "org.lazydog.entry.security.callbackHandlerClass";
+    public static final String CALLBACK_HANDLER_CLASS_NAME_KEY = "org.lazydog.entry.security.callbackHandlerClass";
     public static final String CONTEXT_PATH_KEY = "org.lazydog.entry.security.contextPath";
-    public static final String SERVER_AUTH_MODULE_CLASS_KEY = "org.lazydog.entry.security.serverAuthModuleClass";
+    public static final String SERVER_AUTH_MODULE_CLASS_NAME_KEY = "org.lazydog.entry.security.serverAuthModuleClass";
     public static final String TRACE_LEVEL_KEY = "org.lazydog.entry.security.traceLevel";
 
     private Map options;
+    private String registrationID;
 
     /**
      * Create the Entry authentication configuration provider.
@@ -68,23 +69,23 @@ public class EntryAuthConfigProvider implements AuthConfigProvider {
             options.put(TRACE_LEVEL_KEY, DEFAULT_TRACE_LEVEL.getName());
         }
 
-        // If there is no callback handler class option, use the default.
-        if (!options.containsKey(CALLBACK_HANDLER_CLASS_KEY)) {
-            options.put(CALLBACK_HANDLER_CLASS_KEY, DEFAULT_CALLBACK_HANDLER_CLASS);
+        // If there is no callback handler class name option, use the default.
+        if (!options.containsKey(CALLBACK_HANDLER_CLASS_NAME_KEY)) {
+            options.put(CALLBACK_HANDLER_CLASS_NAME_KEY, DEFAULT_CALLBACK_HANDLER_CLASS_NAME);
         }
 
-        // If there is no server authentication module class option, use the default.
-        if (!options.containsKey(SERVER_AUTH_MODULE_CLASS_KEY)) {
-            options.put(SERVER_AUTH_MODULE_CLASS_KEY, DEFAULT_SERVER_AUTH_MODULE_CLASS);
+        // If there is no server authentication module class name option, use the default.
+        if (!options.containsKey(SERVER_AUTH_MODULE_CLASS_NAME_KEY)) {
+            options.put(SERVER_AUTH_MODULE_CLASS_NAME_KEY, DEFAULT_SERVER_AUTH_MODULE_CLASS_NAME);
         }
 
         // Set the trace level to the level name or the default trace level.
         TRACER.setLevel((String)options.get(TRACE_LEVEL_KEY), DEFAULT_TRACE_LEVEL);
-        TRACER.trace(Level.CONFIG, "%s is %s", TRACE_LEVEL_KEY, TRACER.getLevel());
+        TRACER.trace(Level.CONFIG, "%s is %s", TRACE_LEVEL_KEY, TRACER.getLevel().getName());
         TRACER.trace(Level.CONFIG, "%s is %s",
-                CALLBACK_HANDLER_CLASS_KEY, (String)options.get(CALLBACK_HANDLER_CLASS_KEY));
+                CALLBACK_HANDLER_CLASS_NAME_KEY, (String)options.get(CALLBACK_HANDLER_CLASS_NAME_KEY));
         TRACER.trace(Level.CONFIG, "%s is %s",
-                SERVER_AUTH_MODULE_CLASS_KEY, (String)options.get(SERVER_AUTH_MODULE_CLASS_KEY));
+                SERVER_AUTH_MODULE_CLASS_NAME_KEY, (String)options.get(SERVER_AUTH_MODULE_CLASS_NAME_KEY));
 
         // Check if the authentication configuration factory and a context path option exist.
         if (authConfigFactory != null && options.containsKey(CONTEXT_PATH_KEY)) {
@@ -93,7 +94,7 @@ public class EntryAuthConfigProvider implements AuthConfigProvider {
                     CONTEXT_PATH_KEY, (String)options.get(CONTEXT_PATH_KEY));
 
             // Register the authentication configuration provider.
-            registerProvider(
+            this.registrationID = registerProvider(
                     authConfigFactory, this, SUPPORTED_MESSAGE_LAYER, (String)options.get(CONTEXT_PATH_KEY));
 
             // Remove the context path from the options (it is no longer needed.)
@@ -135,6 +136,15 @@ public class EntryAuthConfigProvider implements AuthConfigProvider {
     }
 
     /**
+     * Get the registration identifier.
+     * 
+     * @return  the registration identifier.
+     */
+    public String getRegistrationID() {
+        return this.registrationID;
+    }
+
+    /**
      * Get the server authentication configuration.
      *
      * @param  layer            the message layer.
@@ -170,18 +180,22 @@ public class EntryAuthConfigProvider implements AuthConfigProvider {
      * @param  authConfigFactory  the authentication configuration factory.
      * @param  layer              the layer.
      * @param  appContext         the context path.
+     *
+     * @return  the registration identifier.
      */
-    private static void registerProvider(AuthConfigFactory authConfigFactory, 
+    private static String registerProvider(AuthConfigFactory authConfigFactory,
             AuthConfigProvider authConfigProvider, String layer,
             String contextPath) {
 
+        TRACER.trace(Level.INFO,
+                "registering authentication configuration provider %s (%s, %s)",
+                authConfigProvider.getClass().getName(), layer, getAppContext(contextPath));
+
         // Register this provider.
-        authConfigFactory.registerConfigProvider(
+        return authConfigFactory.registerConfigProvider(
                 authConfigProvider, layer, getAppContext(contextPath), null);
 
-        TRACER.trace(Level.INFO,
-                "registered authentication configuration provider %s (%s, %s)",
-                authConfigProvider.getClass().getName(), layer, getAppContext(contextPath));
+        
     }
 
     /**
@@ -218,12 +232,12 @@ public class EntryAuthConfigProvider implements AuthConfigProvider {
                 // If the callback handler does not exist, get the callback handler in the options.
                 if (callbackHandler == null) {
                     callbackHandler = (CallbackHandler)createObject(
-                            (String)options.get(CALLBACK_HANDLER_CLASS_KEY));
+                            (String)options.get(CALLBACK_HANDLER_CLASS_NAME_KEY));
                 }
 
                 // Get the server authentication module in the options.
                 this.serverAuthModule = (ServerAuthModule)createObject(
-                        (String)options.get(SERVER_AUTH_MODULE_CLASS_KEY));
+                        (String)options.get(SERVER_AUTH_MODULE_CLASS_NAME_KEY));
 
                 this.layer = layer;
                 this.appContext = appContext;

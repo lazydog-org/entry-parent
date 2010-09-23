@@ -21,7 +21,7 @@
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>entry-application-registration</artifactId>
+            <artifactId>entry-application-manager-client</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>

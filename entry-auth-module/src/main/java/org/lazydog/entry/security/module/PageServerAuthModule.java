@@ -59,7 +59,7 @@ public class PageServerAuthModule extends EntryServerAuthModule implements Serve
             // Set the trace level to the level name or the default trace level.
             TRACER.setLevel((String)options.get(TRACE_LEVEL_KEY), DEFAULT_TRACE_LEVEL);
 
-            TRACER.trace(Level.CONFIG, "%s is %s", TRACE_LEVEL_KEY, TRACER.getLevel());
+            TRACER.trace(Level.CONFIG, "%s is %s", TRACE_LEVEL_KEY, TRACER.getLevel().getName());
             TRACER.trace(Level.CONFIG, "%s is %s", LOGIN_URL_KEY, this.loginURL);
 
             this.callbackHandler = callbackHandler;

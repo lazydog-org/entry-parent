@@ -7,7 +7,7 @@ import javax.security.auth.message.config.AuthConfigFactory;
 import javax.security.auth.message.config.AuthConfigProvider;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
-import org.lazydog.entry.mbean.ApplicationRegistrationService;
+import org.lazydog.entry.mbean.ApplicationManager;
 import org.lazydog.entry.security.config.EntryAuthConfigProvider;
 import org.lazydog.mbean.utilities.MBeanUtility;
 import org.lazydog.utility.Tracer;
@@ -33,7 +33,7 @@ public class ApplicationRegistrationServer implements ServletContextListener {
         try {
 
             // Unregister the MBean.
-            MBeanUtility.unregister(ApplicationRegistrationService.class);
+            MBeanUtility.unregister(ApplicationManager.class);
         }
         catch(Exception e) {
             e.printStackTrace();
@@ -52,16 +52,16 @@ public class ApplicationRegistrationServer implements ServletContextListener {
 
             // Declare.
             String applicationId;
-            ApplicationRegistrationService applicationRegistrationService;
+            ApplicationManager applicationRegistrationService;
             String serverAuthModuleClass;
 
 applicationId = null;
 
             // Register the MBean.
-            MBeanUtility.register(ApplicationRegistrationService.class);
+            MBeanUtility.register(ApplicationManager.class);
 
             // Get the application registration service.
-            applicationRegistrationService = MBeanUtility.getMBean(ApplicationRegistrationService.class);
+            applicationRegistrationService = MBeanUtility.getMBean(ApplicationManager.class);
 
             // Get the server authentication module class.
             serverAuthModuleClass = applicationRegistrationService.getServerAuthModuleClass(applicationId);
