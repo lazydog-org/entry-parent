@@ -25,8 +25,8 @@ public class ModalServerAuthModule extends EntryServerAuthModule implements Serv
 
     private static final String AUTH_TYPE = "ModalServerAuthModule";
 
-     protected static final String CURRENT_LOGIN_URL_PARAMETER = "currentLoginURL";
-      protected static final String CURRENT_LOGOUT_URL_PARAMETER = "currentLogoutURL";
+    protected static final String CURRENT_URL_PARAMETER = "currentURL";
+
     /**
      * Initialize the SAM with request and response policies,
      * a callback handler, and configuration properties.
@@ -74,17 +74,8 @@ public class ModalServerAuthModule extends EntryServerAuthModule implements Serv
         // Declare.
         String currentURL;
 
-        // Check if the current login URL is defined.
-        if (request.getParameterMap().containsKey(CURRENT_LOGIN_URL_PARAMETER)) {
-
-            // Get the current login URL.
-            currentURL = request.getParameter(CURRENT_LOGIN_URL_PARAMETER);
-        }
-        else {
-
-            // Get the current logout URL.
-            currentURL = request.getParameter(CURRENT_LOGOUT_URL_PARAMETER);
-        }
+        // Get the current login URL.
+        currentURL = request.getParameter(CURRENT_URL_PARAMETER);
 
         // Check if the login is to be retried.
         if (retry) {
@@ -165,8 +156,7 @@ public class ModalServerAuthModule extends EntryServerAuthModule implements Serv
         request = (HttpServletRequest)messageInfo.getRequestMessage();
         response = (HttpServletResponse)messageInfo.getResponseMessage();
 
-        TRACER.trace(Level.FINE, "request get parameterMap['%s'] is %s", CURRENT_LOGIN_URL_PARAMETER, request.getParameter(CURRENT_LOGIN_URL_PARAMETER));
-        TRACER.trace(Level.FINE, "request get parameterMap['%s'] is %s", CURRENT_LOGOUT_URL_PARAMETER, request.getParameter(CURRENT_LOGOUT_URL_PARAMETER));
+        TRACER.trace(Level.FINE, "request get parameterMap['%s'] is %s", CURRENT_URL_PARAMETER, request.getParameter(CURRENT_URL_PARAMETER));
         TRACER.trace(Level.FINE, "request get parameterMap['%s'] is %s", USERNAME_PARAMETER, request.getParameter(USERNAME_PARAMETER));
        
         // Check if the request URI is the login action.
@@ -191,7 +181,7 @@ public class ModalServerAuthModule extends EntryServerAuthModule implements Serv
             // Check if the request has been authenticated.
             if (isAuthenticated(request)) {
 
-                TRACER.trace(Level.INFO, "accessing page %s", request.getRequestURI());
+                TRACER.trace(Level.INFO, "accessing page %s", request.getRequestURL());
 
                 // Set the principals.
                 setPrincipals(request, clientSubject);
@@ -205,7 +195,7 @@ public class ModalServerAuthModule extends EntryServerAuthModule implements Serv
                 // Check if the request is for a secure page.
                 if (this.requestPolicy.isMandatory()) {
 
-                    TRACER.trace(Level.INFO, "accessing secured page %s", request.getRequestURI());
+                    TRACER.trace(Level.INFO, "accessing secured page %s", request.getRequestURL());
                     respondWithForbiddenStatus(request, response);
 
                     // Validation failed.
@@ -213,7 +203,7 @@ public class ModalServerAuthModule extends EntryServerAuthModule implements Serv
                 }
                 else {
 
-                    TRACER.trace(Level.INFO, "accessing unsecured page %s", request.getRequestURI());
+                    TRACER.trace(Level.INFO, "accessing unsecured page %s", request.getRequestURL());
                     
                     // Validation is not required.
                     authStatus = AuthStatus.SUCCESS;

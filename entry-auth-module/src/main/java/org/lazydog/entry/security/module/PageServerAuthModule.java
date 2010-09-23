@@ -22,11 +22,11 @@ import javax.servlet.http.HttpServletResponse;
  */
 public class PageServerAuthModule extends EntryServerAuthModule implements ServerAuthModule {
 
-    private static final String DEFAULT_LOGIN_URL = "/entry/pages/login.jsf";
+    private static final String DEFAULT_LOGIN_URL = "http://localhost:8080/entry/pages/login.jsf";
 
     private static final String AUTH_TYPE = "PageEntryAuthModule";
 
-    private static final String CURRENT_URL_PARAMETER = "currentURL";
+    private static final String LOGIN_URL_PARAMETER = "loginURL";
     private static final String RETURN_URL_PARAMETER = "returnURL";
 
     private static final String LOGIN_URL_KEY = "org.lazydog.entry.security.loginURL";
@@ -87,11 +87,11 @@ public class PageServerAuthModule extends EntryServerAuthModule implements Serve
         // Declare.
         String loginURL;
 
-        // Get the current URL.
-        loginURL = request.getParameter(CURRENT_URL_PARAMETER);
-
         // Check if the login is to be retried.
         if (retry) {
+
+            // Get the login URL.
+            loginURL = request.getParameter(LOGIN_URL_PARAMETER);
 
             // Put the retry, return URL, and username on the session.
             request.getSession().setAttribute(RETRY_KEY, retry);
@@ -108,9 +108,9 @@ public class PageServerAuthModule extends EntryServerAuthModule implements Serve
             loginURL = this.loginURL;
 
             // Put the return URL on the session.
-            request.getSession().setAttribute(RETURN_URL_KEY, request.getRequestURI());
+            request.getSession().setAttribute(RETURN_URL_KEY, request.getRequestURL().toString());
 
-            TRACER.trace(Level.FINE, "session set attributeMap['%s'] is %s", RETURN_URL_KEY, request.getRequestURI());
+            TRACER.trace(Level.FINE, "session set attributeMap['%s'] is %s", RETURN_URL_KEY, request.getRequestURL().toString());
         }
 
         // Redirect to the login URL.
@@ -177,7 +177,7 @@ public class PageServerAuthModule extends EntryServerAuthModule implements Serve
         request = (HttpServletRequest)messageInfo.getRequestMessage();
         response = (HttpServletResponse)messageInfo.getResponseMessage();
 
-        TRACER.trace(Level.FINE, "request get parameterMap['%s'] is %s", CURRENT_URL_PARAMETER, request.getParameter(CURRENT_URL_PARAMETER));
+        TRACER.trace(Level.FINE, "request get parameterMap['%s'] is %s", LOGIN_URL_PARAMETER, request.getParameter(LOGIN_URL_PARAMETER));
         TRACER.trace(Level.FINE, "request get parameterMap['%s'] is %s", RETURN_URL_PARAMETER, request.getParameter(RETURN_URL_PARAMETER));
         TRACER.trace(Level.FINE, "request get parameterMap['%s'] is %s", USERNAME_PARAMETER, request.getParameter(USERNAME_PARAMETER));
        
@@ -208,7 +208,7 @@ public class PageServerAuthModule extends EntryServerAuthModule implements Serve
             // Check if the request has been authenticated.
             if (isAuthenticated(request)) {
 
-                TRACER.trace(Level.INFO, "accessing page %s", request.getRequestURI());
+                TRACER.trace(Level.INFO, "accessing page %s", request.getRequestURL());
 
                 // Set the principals.
                 setPrincipals(request, clientSubject);
@@ -222,12 +222,12 @@ public class PageServerAuthModule extends EntryServerAuthModule implements Serve
                 // Check if the request is for a secure page.
                 if (this.requestPolicy.isMandatory()) {
 
-                    TRACER.trace(Level.INFO, "accessing secured page %s", request.getRequestURI());
+                    TRACER.trace(Level.INFO, "accessing secured page %s", request.getRequestURL());
                     respondWithLoginURL(request, response, false);
                 }
                 else {
 
-                    TRACER.trace(Level.INFO, "accessing unsecured page %s", request.getRequestURI());
+                    TRACER.trace(Level.INFO, "accessing unsecured page %s", request.getRequestURL());
                     
                     // Validation is not required.
                     authStatus = AuthStatus.SUCCESS;

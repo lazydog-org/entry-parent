@@ -34,8 +34,8 @@
                     </li>
                 </ol>
             </fieldset>
-            <h:inputHidden id="currentURL"
-                           value="#{request.requestURI}"/>
+            <h:inputHidden id="loginURL"
+                           value="#{request.requestURL}"/>
             <h:inputHidden id="returnURL"
                            value="#{sessionScope['org.lazydog.entry.security.returnURL']}"/>
             <h:commandButton value="Login"/>

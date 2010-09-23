@@ -12,15 +12,6 @@ import javax.management.MXBean;
 public interface ApplicationManager {
 
     /**
-     * Get the default group name.
-     * 
-     * @param  applicationId  the application identifier.
-     * 
-     * @return  the default group name.
-     */
-    public String getDefaultGroupName(String applicationId);
-
-    /**
      * Get the authentication module class name.
      *
      * @param  applicationId  the application identifier.
@@ -28,4 +19,14 @@ public interface ApplicationManager {
      * @return  the authentication module class name.
      */
     public String getAuthModuleClassName(String applicationId);
+
+    /**
+     * Get the registration URL.
+     *
+     * @param  applicationId  the application identifier.
+     *
+     * @return  the registration URL.
+     */
+    public String getRegistrationURL(String applicationId);
+
 }

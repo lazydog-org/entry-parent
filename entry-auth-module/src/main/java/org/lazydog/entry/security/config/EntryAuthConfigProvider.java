@@ -44,7 +44,7 @@ public class EntryAuthConfigProvider implements AuthConfigProvider {
     public static final String TRACE_LEVEL_KEY = "org.lazydog.entry.security.traceLevel";
 
     private Map options;
-    private String registrationID;
+    private String registrationId;
 
     /**
      * Create the Entry authentication configuration provider.
@@ -94,7 +94,7 @@ public class EntryAuthConfigProvider implements AuthConfigProvider {
                     CONTEXT_PATH_KEY, (String)options.get(CONTEXT_PATH_KEY));
 
             // Register the authentication configuration provider.
-            this.registrationID = registerProvider(
+            this.registrationId = registerProvider(
                     authConfigFactory, this, SUPPORTED_MESSAGE_LAYER, (String)options.get(CONTEXT_PATH_KEY));
 
             // Remove the context path from the options (it is no longer needed.)
@@ -140,8 +140,8 @@ public class EntryAuthConfigProvider implements AuthConfigProvider {
      * 
      * @return  the registration identifier.
      */
-    public String getRegistrationID() {
-        return this.registrationID;
+    public String getRegistrationId() {
+        return this.registrationId;
     }
 
     /**

@@ -130,15 +130,15 @@ public class EntryServiceImpl implements EntryService {
     }
 
     /**
-     * Register the user profile and add the user account to the default group.
+     * Register the user profile for the specified application.
      *
-     * @param  userProfile       the user profile.
-     * @param  defaultGroupName  the default group name.
+     * @param  userProfile    the user profile.
+     * @param  applicationId  the application identifier.
      *
      * @return  true if the user account exists, otherwise false.
      */
     @Override
-    public boolean register(UserProfile userProfile, String defaultGroupName) {
+    public boolean register(UserProfile userProfile, String applicationId) {
 
         // Declare.
         Set<String> accountNames;
@@ -160,7 +160,8 @@ public class EntryServiceImpl implements EntryService {
         // Add the user account to the default group.
         accountNames = new HashSet<String>();
         accountNames.add(userProfile.getUsername());
-        entryAccountManager.addMembers(defaultGroupName, accountNames);
+// TODO: lookup default group for application identifier.
+        entryAccountManager.addMembers("comicmanageruser", accountNames);
 
         return entryAccountManager.accountExists(userProfile.getUsername());
     }

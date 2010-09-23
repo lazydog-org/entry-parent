@@ -11,18 +11,6 @@ import org.lazydog.entry.mbean.ApplicationManager;
 public class ApplicationManagerImpl implements ApplicationManager {
 
     /**
-     * Get the default group name.
-     *
-     * @param  applicationId  the application identifier.
-     *
-     * @return  the default group name.
-     */
-    @Override
-    public String getDefaultGroupName(String applicationId) {
-        return "comicmanageruser";
-    }
-
-    /**
      * Get the authentication module class name.
      *
      * @param  applicationId  the application identifier.
@@ -32,5 +20,17 @@ public class ApplicationManagerImpl implements ApplicationManager {
     @Override
     public String getAuthModuleClassName(String applicationId) {
         return "org.lazydog.entry.security.module.ModalServerAuthModule";
+    }
+
+    /**
+     * Get the registration URL.
+     *
+     * @param  applicationId  the application identifier.
+     *
+     * @return  the registration URL.
+     */
+    @Override
+    public String getRegistrationURL(String applicationId) {
+        return "http://localhost:8080/entry/pages/registration.jsf";
     }
 }

@@ -18,19 +18,19 @@ import org.lazydog.entry.model.UserProfile;
 @RequestScoped
 public class RegistrationBean {
 
-    @ManagedProperty(value="#{param.defaultGroupName}")
-    private String defaultGroupName;
+    @ManagedProperty(value="#{param.applicationId}")
+    private String applicationId;
     @EJB(beanName="ejb/EntryService", beanInterface=EntryService.class)
     private EntryService entryService;
     private UserProfile userProfile;
 
     /**
-     * Get the default group name.
+     * Get the application identifier.
      * 
-     * @return  the default group name.
+     * @return  the application identifier.
      */
-    public String getDefaultGroupName() {
-        return this.defaultGroupName;
+    public String getApplicationId() {
+        return this.applicationId;
     }
 
     /**
@@ -67,7 +67,7 @@ public class RegistrationBean {
         try {
 
             // Register the user profile.
-            outcome = (entryService.register(userProfile, defaultGroupName)) ? "success" : "failure";
+            outcome = (entryService.register(userProfile, applicationId)) ? "success" : "failure";
         }
         catch(Exception e) {
 e.printStackTrace();
@@ -78,12 +78,12 @@ e.printStackTrace();
     }
 
     /**
-     * Set the default group name.
+     * Set the application identifier.
      * 
-     * @param  defaultGroupName  the default group name.
+     * @param  applicationId  the application identifier.
      */
-    public void setDefaultGroupName(String defaultGroupName) {
-        this.defaultGroupName = defaultGroupName;
+    public void setApplicationId(String applicationId) {
+        this.applicationId = applicationId;
     }
 
     /**
