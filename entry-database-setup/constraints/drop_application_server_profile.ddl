@@ -1,0 +1,2 @@
+alter table entry.application_server_profile
+    drop key application_server_profile__application_server_id__uk;

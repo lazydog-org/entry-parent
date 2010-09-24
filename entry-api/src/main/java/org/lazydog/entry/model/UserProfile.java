@@ -1,16 +1,9 @@
 package org.lazydog.entry.model;
 
 import java.io.Serializable;
-import java.util.Date;
-import java.util.Set;
 import java.util.UUID;
 import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
-import javax.validation.ConstraintViolation;
-import javax.validation.Validation;
-import javax.validation.Validator;
-import javax.validation.ValidatorFactory;
 
 
 /**
@@ -18,27 +11,22 @@ import javax.validation.ValidatorFactory;
  *
  * @author  Ron Rickard
  */
-public class UserProfile implements Comparable<UserProfile>, Serializable {
+public class UserProfile extends Entity<UserProfile> implements Comparable<UserProfile>, Serializable {
     
     private static final long serialVersionUID = 1L;
     private String activationCode;
     @NotNull(message="Email address is required.")
-    @Size(max=50, message="Email address cannot contain more than 50 characters.")
+    @Size(max=255, message="Email address cannot contain more than 255 characters.")
     private String emailAddress;
     @NotNull(message="First name is required.")
-    @Size(max=50, message="First name cannot contain more than 50 characters.")
+    @Size(max=255, message="First name cannot contain more than 255 characters.")
     private String firstName;
-    private Integer id;
     @NotNull(message="Last name is required.")
-    @Size(max=50, message="Last name cannot contain more than 50 characters.")
+    @Size(max=255, message="Last name cannot contain more than 255 characters.")
     private String lastName;
-    @NotNull(message="Modify time is required.")
-    private Date modifyTime;
     private String password;
-    @NotNull(message="Register time is required.")
-    private Date registerTime;
     @NotNull(message="Username is required.")
-    @Size(max=50, message="Username cannot contain more than 50 characters.")
+    @Size(max=255, message="Username cannot contain more than 255 characters.")
     private String username;
     @NotNull(message="UUID is required.")
     private String uuid;
@@ -77,20 +65,18 @@ public class UserProfile implements Comparable<UserProfile>, Serializable {
      *
      * @return  a copy of this object.
      */
+    @Override
     public UserProfile copy() {
         
         // Declare.
         UserProfile copy;
         
         // Create a copy.
-        copy = new UserProfile();
+        copy = super.copy();
         copy.setActivationCode(this.getActivationCode());
         copy.setEmailAddress(this.getEmailAddress());
         copy.setFirstName(this.getFirstName());
-        copy.setId(this.getId());
         copy.setLastName(this.getLastName());
-        copy.setModifyTime(this.getModifyTime());
-        copy.setRegisterTime(this.getRegisterTime());
         copy.setUsername(this.getUsername());
         copy.setUuid(this.getUuid());
 
@@ -160,15 +146,6 @@ public class UserProfile implements Comparable<UserProfile>, Serializable {
     }
 
     /**
-     * Get the ID.
-     *
-     * @return  the ID.
-     */
-    public Integer getId() {
-        return this.id;
-    }
-
-    /**
      * Get the last name.
      *
      * @return  the last name.
@@ -178,30 +155,12 @@ public class UserProfile implements Comparable<UserProfile>, Serializable {
     }
 
     /**
-     * Get the modify time.
-     * 
-     * @return  the modify time.
-     */
-    public Date getModifyTime() {
-        return this.modifyTime;
-    }
-
-    /**
      * Get the password.
      * 
      * @return  the password.
      */
     public String getPassword() {
         return this.password;
-    }
-
-    /**
-     * Get the register time.
-     *
-     * @return  the register time.
-     */
-    public Date getRegisterTime() {
-        return this.registerTime;
     }
 
     /**
@@ -240,15 +199,6 @@ public class UserProfile implements Comparable<UserProfile>, Serializable {
     }
 
     /**
-     * Check if this object is valid.
-     *
-     * @return  true if this object is valid, otherwise false.
-     */
-    public boolean isValid() {
-        return (this.validate().isEmpty()) ? true : false;
-    }
-
-    /**
      * Get a new instance of this class.
      * 
      * @return  a new instance of this class.
@@ -264,29 +214,6 @@ public class UserProfile implements Comparable<UserProfile>, Serializable {
         userProfile.setUuid(generateUuid());
 
         return userProfile;
-    }
-
-    /**
-     * Replace the original object with the replacement object
-     * if the original object is null.
-     *
-     * @param  original     the original object.
-     * @param  replacement  the replacement object.
-     *
-     * @return  the original object if it is not null, otherwise the replacement
-     *          object.
-     *
-     * @throws  IllegalArgumentException  if the replacement object is null.
-     */
-    private static <U, V extends U> U replaceNull(U original, V replacement) {
-
-        // Check if the replacement object is null.
-        if (replacement == null) {
-            throw new IllegalArgumentException(
-                    "The replacement object cannot be null.");
-        }
-
-        return (original == null) ? replacement : original;
     }
 
     /**
@@ -317,15 +244,6 @@ public class UserProfile implements Comparable<UserProfile>, Serializable {
     }
 
     /**
-     * Set the ID.
-     *
-     * @param  id  the ID.
-     */
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
-    /**
      * Set the last name.
      *
      * @param  lastName  the last name.
@@ -335,30 +253,12 @@ public class UserProfile implements Comparable<UserProfile>, Serializable {
     }
 
     /**
-     * Set the modify time.
-     *
-     * @param  modifyTime  the modify time.
-     */
-    public void setModifyTime(Date modifyTime) {
-        this.modifyTime = modifyTime;
-    }
-
-    /**
      * Set the password.
      *
      * @param  password  the password.
      */
     public void setPassword(String password) {
         this.password = password;
-    }
-
-    /**
-     * Set the register time.
-     *
-     * @param  registerTime  the register time.
-     */
-    public void setRegisterTime(Date registerTime) {
-        this.registerTime = registerTime;
     }
 
     /**
@@ -393,55 +293,19 @@ public class UserProfile implements Comparable<UserProfile>, Serializable {
         // Initialize.
         toString = new StringBuffer();
         
-        toString.append("ApplicationUser [");
+        toString.append("UserProfile [");
         toString.append("activationCode = ").append(this.getActivationCode());
+        toString.append(", createTime = ").append(this.getCreateTime());
         toString.append(", emailAddress = ").append(this.getEmailAddress());
         toString.append(", firstName = ").append(this.getFirstName());
         toString.append(", id = ").append(this.getId());
         toString.append(", lastName = ").append(this.getLastName());
         toString.append(", modifyTime = ").append(this.getModifyTime());
-        toString.append(", registerTime = ").append(this.getRegisterTime());
         toString.append(", username = ").append(this.getUsername());
         toString.append(", uuid = ").append(this.getUuid());
         toString.append("]");
         
         return toString.toString();
-    }
-
-    /**
-     * Get the trimmed string.
-     *
-     * @param  value  the string.
-     *
-     * @return  the trimmed string.
-     */
-    private static String trimmed(String value) {
-        return (value != null) ? value.trim() : null;
-    }
-
-    /**
-     * Validate this object.
-     *
-     * @return  a set of constraint violations or an empty set if there are no
-     *          constraint violations.
-     */
-    public Set<ConstraintViolation<UserProfile>> validate() {
-
-        // Declare.
-        Set<ConstraintViolation<UserProfile>> constraintViolations;
-        Validator validator;
-        ValidatorFactory validatorFactory;
-
-        // Get the validator factory.
-        validatorFactory = Validation.buildDefaultValidatorFactory();
-
-        // Get the validator for this object type.
-        validator = validatorFactory.getValidator();
-
-        // Validate this object.
-        constraintViolations = validator.validate(this);
-
-        return constraintViolations;
     }
 }
 

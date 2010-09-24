@@ -9,7 +9,15 @@
     <persistence-unit name="EntryPU" transaction-type="JTA">
         <provider>org.eclipse.persistence.jpa.PersistenceProvider</provider>
         <jta-data-source>jdbc/EntryPool</jta-data-source>
+        <mapping-file>org/lazydog/entry/internal/repository/orm/applicationProfile-orm.xml</mapping-file>
+        <mapping-file>org/lazydog/entry/internal/repository/orm/applicationServerProfile-orm.xml</mapping-file>
+        <mapping-file>org/lazydog/entry/internal/repository/orm/authenticationModule-orm.xml</mapping-file>
+        <mapping-file>org/lazydog/entry/internal/repository/orm/entity-orm.xml</mapping-file>
         <mapping-file>org/lazydog/entry/internal/repository/orm/userProfile-orm.xml</mapping-file>
+        <class>org.lazydog.entry.model.ApplicationProfile</class>
+        <class>org.lazydog.entry.model.ApplicationServerProfile</class>
+        <class>org.lazydog.entry.model.AuthenticationModule</class>
+        <class>org.lazydog.entry.model.Entity</class>
         <class>org.lazydog.entry.model.UserProfile</class>
         <properties>
             <property name="eclipselink.logging.level" value="OFF"/>

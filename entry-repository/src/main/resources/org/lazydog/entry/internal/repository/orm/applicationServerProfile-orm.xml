@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<entity-mappings
+    xmlns="http://java.sun.com/xml/ns/persistence/orm"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://java.sun.com/xml/ns/persistence/orm 
+                        http://java.sun.com/xml/ns/persistence/orm_1_0.xsd"
+    version="1.0">
+
+    <package>org.lazydog.entry.model</package>
+    <entity class="ApplicationServerProfile" access="FIELD" metadata-complete="true">
+        <table name="application_server_profile" schema="entry"/>
+        <attributes>
+            <basic name="applicationServerId">
+                <column name="application_server_id" nullable="false" unique="true"/>
+            </basic>
+            <basic name="jmxHost">
+                <column name="jmx_host" nullable="false"/>
+            </basic>
+            <basic name="jmxLogin">
+                <column name="jmx_login" nullable="false"/>
+            </basic>
+            <basic name="jmxPassword">
+                <column name="jmx_password" nullable="false"/>
+            </basic>
+            <basic name="jmxPort">
+                <column name="jmx_port" nullable="false"/>
+            </basic>
+        </attributes>
+    </entity>
+</entity-mappings>

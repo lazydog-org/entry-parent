@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<entity-mappings
+    xmlns="http://java.sun.com/xml/ns/persistence/orm"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://java.sun.com/xml/ns/persistence/orm 
+                        http://java.sun.com/xml/ns/persistence/orm_1_0.xsd"
+    version="1.0">
+
+    <package>org.lazydog.entry.model</package>
+    <entity class="ApplicationProfile" access="FIELD" metadata-complete="true">
+        <table name="application_profile" schema="entry"/>
+        <attributes>
+            <basic name="applicationId">
+                <column name="application_id" nullable="false" unique="true"/>
+            </basic>
+            <many-to-one name="applicationServerProfile" fetch="EAGER">
+                <join-column name="application_server_profile_id" nullable="false"/>
+            </many-to-one>
+            <many-to-one name="authenticationModule" fetch="EAGER">
+                <join-column name="authentication_module_id" nullable="false"/>
+            </many-to-one>
+            <basic name="defaultGroupName">
+                <column name="default_group_name" nullable="false"/>
+            </basic>
+            <basic name="registrationURL">
+                <column name="registration_url" nullable="false"/>
+            </basic>
+        </attributes>
+    </entity>
+</entity-mappings>
