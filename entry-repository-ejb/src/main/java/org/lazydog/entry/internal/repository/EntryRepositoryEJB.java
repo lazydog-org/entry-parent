@@ -6,8 +6,8 @@ import javax.ejb.Singleton;
 import javax.interceptor.Interceptors;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import org.lazydog.ejbmonitor.interceptor.EJBMonitor;
 import org.lazydog.entry.spi.repository.EntryRepository;
-import org.lazydog.utilities.ejbmonitor.interceptor.EJBMonitor;
 
 
 /**

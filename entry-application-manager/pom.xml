@@ -9,9 +9,9 @@
         <artifactId>entry-parent</artifactId>
         <version>1.0-SNAPSHOT</version>
     </parent>
-    <artifactId>entry-application-manager-server</artifactId>
+    <artifactId>entry-application-manager</artifactId>
     <packaging>jar</packaging>
-    <name>Entry Application Manager Server</name>
+    <name>Entry Application Manager</name>
     <dependencies>
         <dependency>
             <groupId>javax</groupId>
@@ -21,7 +21,7 @@
         </dependency>
         <dependency>
             <groupId>org.lazydog</groupId>
-            <artifactId>mbean-utilities</artifactId>
+            <artifactId>mbean-utility</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
         <dependency>
@@ -31,12 +31,12 @@
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>entry-application-manager</artifactId>
+            <artifactId>entry-auth-module</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>entry-auth-module</artifactId>
+            <artifactId>entry-mbean</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>

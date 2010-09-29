@@ -21,7 +21,7 @@
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>entry-application-manager-client</artifactId>
+            <artifactId>entry-application-manager</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>

@@ -4,9 +4,10 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 import javax.ejb.EJB;
-import javax.ejb.Local;
+import javax.ejb.Remote;
 import javax.ejb.Singleton;
 import javax.interceptor.Interceptors;
+import org.lazydog.ejbmonitor.interceptor.EJBMonitor;
 import org.lazydog.entry.spi.account.manager.EntryAccountManager;
 import org.lazydog.entry.spi.repository.EntryRepository;
 import org.lazydog.entry.EntryService;
@@ -14,7 +15,6 @@ import org.lazydog.entry.model.ApplicationProfile;
 import org.lazydog.entry.model.UserProfile;
 import org.lazydog.repository.Criteria;
 import org.lazydog.repository.criterion.ComparisonOperation;
-import org.lazydog.utilities.ejbmonitor.interceptor.EJBMonitor;
 
 
 /**
@@ -23,7 +23,8 @@ import org.lazydog.utilities.ejbmonitor.interceptor.EJBMonitor;
  * @author  Ron Rickard
  */
 @Singleton(name="ejb/EntryService")
-@Local(EntryService.class)
+@EJB(name="java:global/ejb/EntryService", beanInterface=EntryService.class)
+@Remote(EntryService.class)
 @Interceptors(EJBMonitor.class)
 public class EntryServiceImpl implements EntryService {
 

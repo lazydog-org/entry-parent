@@ -6,8 +6,8 @@ import javax.annotation.Resource;
 import javax.ejb.Local;
 import javax.ejb.Singleton;
 import javax.interceptor.Interceptors;
+import org.lazydog.ejbmonitor.interceptor.EJBMonitor;
 import org.lazydog.entry.spi.account.manager.EntryAccountManager;
-import org.lazydog.utilities.ejbmonitor.interceptor.EJBMonitor;
 
 
 /**

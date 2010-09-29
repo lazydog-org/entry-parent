@@ -85,7 +85,9 @@
                         </div>
                         <div style="text-align: center; padding: 10px;">
                             Forgot your username or password?<br/>
-                            Need to <a href="#{applicationScope['org.lazydog.entry.application.manager.registrationURL']}?applicationId=#{applicationScope['org.lazydog.entry.application.manager.applicationId']}" target="_blank">register</a>?
+                            <c:if test="#{!empty applicationScope['org.lazydog.entry.application.manager.registrationURL']}">
+                                Need to <a href="#{applicationScope['org.lazydog.entry.application.manager.registrationURL']}?applicationId=#{applicationScope['org.lazydog.entry.application.manager.applicationId']}" target="_blank">register</a>?
+                            </c:if>
                         </div>
                     </div>
                 </div>

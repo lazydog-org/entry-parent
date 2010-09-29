@@ -1,4 +1,4 @@
-package org.lazydog.entry.application.manager.server;
+package org.lazydog.entry.application.manager.listener;
 
 import java.lang.management.ManagementFactory;
 import java.util.logging.Level;
@@ -14,19 +14,19 @@ import javax.servlet.annotation.WebListener;
 import org.lazydog.entry.EntryService;
 import org.lazydog.entry.mbean.ApplicationManager;
 import org.lazydog.entry.security.utility.AuthModuleUtility;
-import org.lazydog.mbean.utilities.MBeanUtility;
+import org.lazydog.mbean.utility.MBeanUtility;
 import org.lazydog.utility.Tracer;
 
 
 /**
- * Application manager server notification and context listener.
+ * Application manager listener.
  *
  * @author  Ron Rickard
  */
 @WebListener
-public class ApplicationManagerServer implements NotificationListener, ServletContextListener {
+public class ApplicationManagerListener implements NotificationListener, ServletContextListener {
 
-    private static final Tracer TRACER = Tracer.getTracer(ApplicationManagerServer.class.getName());
+    private static final Tracer TRACER = Tracer.getTracer(ApplicationManagerListener.class.getName());
 // TODO: change the level to WARNING.
     private static final Level DEFAULT_TRACE_LEVEL = Level.WARNING;
 
@@ -34,7 +34,7 @@ public class ApplicationManagerServer implements NotificationListener, ServletCo
     private static final String REGISTRATION_URL_KEY = "org.lazydog.entry.application.manager.registrationURL";
     private static final String TRACE_LEVEL_KEY = "org.lazydog.entry.application.manager.traceLevel";
 
-    @EJB(beanName="ejb/EntryService", beanInterface=EntryService.class)
+    @EJB(lookup="java:global/ejb/EntryService", beanInterface=EntryService.class)
     private EntryService entryService;
     private ObjectName objectName;
     private String registrationId;
@@ -92,9 +92,7 @@ public class ApplicationManagerServer implements NotificationListener, ServletCo
             TRACER.trace(Level.CONFIG, "%s is %s", APPLICATION_ID_KEY, applicationId);
 
             // Register the MBean.
-            this.objectName = MBeanUtility.register(
-                    ApplicationManager.class,
-                    MBeanUtility.getObjectName(ApplicationManager.class, "applicationId", applicationId));
+            this.objectName = MBeanUtility.register(ApplicationManager.class, "applicationId", applicationId);
             TRACER.trace(Level.INFO, "registered the MBean %s (%s)", ApplicationManager.class.getName(), this.objectName.getCanonicalName());
 
             // Add as notification listener.
