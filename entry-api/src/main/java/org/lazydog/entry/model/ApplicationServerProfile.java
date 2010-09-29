@@ -29,7 +29,7 @@ public class ApplicationServerProfile extends Entity<ApplicationServerProfile> i
     private String jmxPassword;
     @NotNull(message="JMX port is required.")
     @Min(value=1, message="JMX port must be at least 1.")
-    @Max(value=65535, message="Print must be at most 66535.")
+    @Max(value=65535, message="JMX port must be at most 66535.")
     private Integer jmxPort = new Integer(1);
 
     /**

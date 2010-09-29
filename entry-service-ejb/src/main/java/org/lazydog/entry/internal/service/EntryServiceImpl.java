@@ -10,6 +10,7 @@ import javax.interceptor.Interceptors;
 import org.lazydog.entry.spi.account.manager.EntryAccountManager;
 import org.lazydog.entry.spi.repository.EntryRepository;
 import org.lazydog.entry.EntryService;
+import org.lazydog.entry.model.ApplicationProfile;
 import org.lazydog.entry.model.UserProfile;
 import org.lazydog.repository.Criteria;
 import org.lazydog.repository.criterion.ComparisonOperation;
@@ -77,12 +78,57 @@ public class EntryServiceImpl implements EntryService {
     }
 
     /**
+     * Get the application profile.
+     *
+     * @param  applicationId  the application identifier.
+     *
+     * @return  the application profile.
+     */
+    private ApplicationProfile getApplicationProfile(String applicationId) {
+        
+        // Declare.
+        Criteria<ApplicationProfile> criteria;
+        ApplicationProfile applicationProfile;
+        
+        // Get the application profile for the application identifier.
+        criteria = entryRepository.getCriteria(ApplicationProfile.class);
+        criteria.add(ComparisonOperation.eq("applicationId", applicationId));
+        applicationProfile = entryRepository.find(ApplicationProfile.class, criteria);
+        
+        return applicationProfile;
+    }
+    
+    /**
+     * Get the authentication module class name.
+     * 
+     * @param  applicationId  the application identifier.
+     * 
+     * @return  the authentication module class name.
+     */
+    @Override
+    public String getAuthenticationModuleClassName(String applicationId) {
+        return getApplicationProfile(applicationId).getAuthenticationModule().getClassName();
+    }
+
+    /**
      * Get the entry repository.
      * 
      * @return  the entry repository.
      */
     protected EntryRepository getEntryRepository() {
         return this.entryRepository;
+    }
+
+    /**
+     * Get the registration URL.
+     *
+     * @param  applicationId  the application identifier.
+     *
+     * @return  the registration URL.
+     */
+    @Override
+    public String getRegistrationURL(String applicationId) {
+        return getApplicationProfile(applicationId).getRegistrationURL();
     }
 
     /**
@@ -99,7 +145,7 @@ public class EntryServiceImpl implements EntryService {
         Criteria<UserProfile> criteria;
         UserProfile userProfile;
 
-        // Get the user profile for username.
+        // Get the user profile for the username.
         criteria = entryRepository.getCriteria(UserProfile.class);
         criteria.add(ComparisonOperation.eq("username", username));
         userProfile = entryRepository.find(UserProfile.class, criteria);
@@ -142,11 +188,12 @@ public class EntryServiceImpl implements EntryService {
 
         // Declare.
         Set<String> accountNames;
+        String defaultGroupName;
 
-        // Set the register time, modify time, activation code, 
+        // Set the create time, modify time, activation code,
         // and UUID for the user profile.
-        userProfile.setRegisterTime(new Date());
-        userProfile.setModifyTime(userProfile.getRegisterTime());
+        userProfile.setCreateTime(new Date());
+        userProfile.setModifyTime(userProfile.getCreateTime());
 
         // Persist the user profile.
         entryRepository.persist(userProfile);
@@ -156,12 +203,16 @@ public class EntryServiceImpl implements EntryService {
 
         // Lock the user account.
 //entryAccountManager.lockAccount(userProfile.getUsername());
-        
-        // Add the user account to the default group.
+
+        // Set the account names.
         accountNames = new HashSet<String>();
         accountNames.add(userProfile.getUsername());
-// TODO: lookup default group for application identifier.
-        entryAccountManager.addMembers("comicmanageruser", accountNames);
+
+        // Get the default group for the application identifier.
+        defaultGroupName = getApplicationProfile(applicationId).getDefaultGroupName();
+
+        // Add the user account to the default group.
+        entryAccountManager.addMembers(defaultGroupName, accountNames);
 
         return entryAccountManager.accountExists(userProfile.getUsername());
     }

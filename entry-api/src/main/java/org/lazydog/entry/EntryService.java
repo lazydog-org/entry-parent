@@ -14,11 +14,15 @@ public interface EntryService {
 
     public boolean deactivate(String username);
 
+    public String getAuthenticationModuleClassName(String applicationId);
+
+    public String getRegistrationURL(String applicationId);
+
     public UserProfile getUserProfile(String username);
 
     public void modify(UserProfile userProfile);
     
-    public boolean register(UserProfile userProfile, String defaultGroupName);
+    public boolean register(UserProfile userProfile, String applicationId);
 
     public boolean unregister(String username);
 }

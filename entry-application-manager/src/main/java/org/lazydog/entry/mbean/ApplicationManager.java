@@ -11,22 +11,21 @@ import javax.management.MXBean;
 @MXBean
 public interface ApplicationManager {
 
+    public static final String AUTHENTICATION_MODULE_CLASS_NAME_ATTRIBUTE = "authenticationModuleClassName";
+    public static final String REGISTRATION_URL_ATTRIBUTE = "registrationURL";
+    
     /**
-     * Get the authentication module class name.
+     * Set the authentication module class name.
      *
-     * @param  applicationId  the application identifier.
-     *
-     * @return  the authentication module class name.
+     * @param  authenticationModuleClassName  the authentication module class name.
      */
-    public String getAuthModuleClassName(String applicationId);
+    public void setAuthenticationModuleClassName(String authenticationModuleClassName);
 
     /**
-     * Get the registration URL.
+     * Set the registration URL.
      *
-     * @param  applicationId  the application identifier.
-     *
-     * @return  the registration URL.
+     * @param  registrationURL  the registration URL.
      */
-    public String getRegistrationURL(String applicationId);
+    public void setRegistrationURL(String registrationURL);
 
 }

@@ -12,6 +12,10 @@
         <param-value>Entry</param-value>
     </context-param>
     <context-param>
+        <param-name>org.lazydog.entry.application.manager.traceLevel</param-name>
+        <param-value>FINEST</param-value>
+    </context-param>
+    <context-param>
         <param-name>javax.faces.PROJECT_STAGE</param-name>
         <param-value>Development</param-value>
     </context-param>

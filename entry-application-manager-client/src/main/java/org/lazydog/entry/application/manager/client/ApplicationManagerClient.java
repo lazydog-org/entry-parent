@@ -3,6 +3,8 @@ package org.lazydog.entry.application.manager.client;
 import java.util.Properties;
 import java.util.logging.Level;
 import javax.annotation.Resource;
+import javax.management.Notification;
+import javax.management.NotificationListener;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.servlet.annotation.WebListener;
@@ -18,7 +20,7 @@ import org.lazydog.utility.Tracer;
  * @author  Ron Rickard
  */
 @WebListener
-public class ApplicationManagerClient implements ServletContextListener {
+public class ApplicationManagerClient implements NotificationListener, ServletContextListener {
 
     private static final Tracer TRACER = Tracer.getTracer(ApplicationManagerClient.class.getName());
 
@@ -103,5 +105,10 @@ public class ApplicationManagerClient implements ServletContextListener {
         catch(Exception e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public void handleNotification(Notification notification, Object object) {
+
     }
 }
