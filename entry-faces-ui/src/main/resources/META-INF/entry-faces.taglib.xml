@@ -3,11 +3,11 @@
 <facelet-taglib>
     <namespace>http://entry.lazydog.org/jsf</namespace>
     <tag>
-        <tag-name>login</tag-name>
-        <source>facelet/tag/login.xhtml</source>
+        <tag-name>login1_2</tag-name>
+        <source>facelet/tag/login1_2.xhtml</source>
     </tag>
     <tag>
-        <tag-name>logout</tag-name>
-        <source>facelet/tag/logout.xhtml</source>
+        <tag-name>login</tag-name>
+        <source>facelet/tag/login.xhtml</source>
     </tag>
 </facelet-taglib>
