@@ -13,10 +13,10 @@
             <basic name="applicationId">
                 <column name="application_id" nullable="false" unique="true"/>
             </basic>
-            <many-to-one name="applicationServerProfile" fetch="EAGER">
+            <many-to-one name="applicationServerProfile">
                 <join-column name="application_server_profile_id" nullable="false"/>
             </many-to-one>
-            <many-to-one name="authenticationModule" fetch="EAGER">
+            <many-to-one name="authenticationModule">
                 <join-column name="authentication_module_id" nullable="false"/>
             </many-to-one>
             <basic name="defaultGroupName">
