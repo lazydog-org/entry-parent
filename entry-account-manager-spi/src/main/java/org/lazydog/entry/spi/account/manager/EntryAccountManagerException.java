@@ -23,7 +23,7 @@ public class EntryAccountManagerException extends RuntimeException implements Se
     /**
      * Constructs a new exception with the specified message.
      *
-     * @param  message   the message.
+     * @param  message  the message.
      */
     public EntryAccountManagerException(String message) {
         super(message);
@@ -32,8 +32,8 @@ public class EntryAccountManagerException extends RuntimeException implements Se
     /**
      * Constructs a new exception with the specified message and cause.
      *
-     * @param  message   the message.
-     * @param  cause     the cause.
+     * @param  message  the message.
+     * @param  cause    the cause.
      */
     public EntryAccountManagerException(String message, Throwable cause) {
         super(message, cause);
@@ -42,7 +42,7 @@ public class EntryAccountManagerException extends RuntimeException implements Se
     /**
      * Constructs a new exception with the specified cause.
      *
-     * @param  cause     the cause.
+     * @param  cause  the cause.
      */
     public EntryAccountManagerException(Throwable cause) {
         super(cause);
