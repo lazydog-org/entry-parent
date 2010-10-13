@@ -31,5 +31,4 @@ public class EntryAccountManagerFactoryImpl extends EntryAccountManagerFactory {
 
         return entryAccountManager;
     }
-
 }
