@@ -20,7 +20,7 @@
                 <configuration>
                     <generateApplicationXml>true</generateApplicationXml>
                     <defaultLibBundleDir>lib</defaultLibBundleDir>
-                    <version>6</version>
+                    <version>5</version>
                     <modules>
                         <webModule>
                             <groupId>${project.groupId}</groupId>

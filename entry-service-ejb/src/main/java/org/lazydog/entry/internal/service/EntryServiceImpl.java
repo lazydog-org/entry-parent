@@ -22,8 +22,7 @@ import org.lazydog.repository.criterion.ComparisonOperation;
  * 
  * @author  Ron Rickard
  */
-@Singleton(name="ejb/EntryService")
-@EJB(name="java:global/ejb/EntryService", beanInterface=EntryService.class)
+@Singleton(name="ejb/EntryService", mappedName="ejb/EntryService")
 @Remote(EntryService.class)
 @Interceptors(EJBMonitor.class)
 public class EntryServiceImpl implements EntryService {

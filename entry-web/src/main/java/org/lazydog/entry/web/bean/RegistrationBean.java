@@ -20,7 +20,7 @@ public class RegistrationBean {
 
     @ManagedProperty(value="#{param.applicationId}")
     private String applicationId;
-    @EJB(beanName="ejb/EntryService", beanInterface=EntryService.class)
+    @EJB(mappedName="ejb/EntryService", beanInterface=EntryService.class)
     private EntryService entryService;
     private UserProfile userProfile;
 

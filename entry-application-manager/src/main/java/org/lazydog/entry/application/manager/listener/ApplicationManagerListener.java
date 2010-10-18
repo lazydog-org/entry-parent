@@ -34,7 +34,7 @@ public class ApplicationManagerListener implements NotificationListener, Servlet
     private static final String REGISTRATION_URL_KEY = "org.lazydog.entry.application.manager.registrationURL";
     private static final String TRACE_LEVEL_KEY = "org.lazydog.entry.application.manager.traceLevel";
 
-    @EJB(lookup="java:global/ejb/EntryService", beanInterface=EntryService.class)
+    @EJB(mappedName="ejb/EntryService", beanInterface=EntryService.class)
     private EntryService entryService;
     private ObjectName objectName;
     private String registrationId;
