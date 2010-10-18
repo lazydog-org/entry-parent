@@ -40,7 +40,7 @@
         <dependency>
             <groupId>org.lazydog</groupId>
             <artifactId>ejb-monitor</artifactId>
-            <version>1.2-SNAPSHOT</version>
+            <version>1.2</version>
         </dependency>
         <!-- stub API needs to follow the actual implementation to avoid ClassFormatError -->
         <dependency>
