@@ -9,4 +9,36 @@
     <artifactId>entry-faces-ui</artifactId>
     <packaging>jar</packaging>
     <name>Entry Faces User Interface</name>
+    <properties>
+        <org.richfaces.bom.version>4.2.1.Final</org.richfaces.bom.version>
+    </properties>
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.richfaces</groupId>
+                <artifactId>richfaces-bom</artifactId>
+                <version>${org.richfaces.bom.version}</version>
+                <scope>import</scope>
+                <type>pom</type>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+    <dependencies>
+        <dependency>
+            <groupId>javax</groupId>
+            <artifactId>javaee-api</artifactId>
+            <version>6.0</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.richfaces.ui</groupId>
+            <artifactId>richfaces-components-ui</artifactId>
+            <version>${org.richfaces.bom.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.richfaces.core</groupId>
+            <artifactId>richfaces-core-impl</artifactId>
+            <version>${org.richfaces.bom.version}</version>
+        </dependency>
+    </dependencies>
 </project>

@@ -42,12 +42,9 @@ public abstract class Entity<T extends Entity<T>> implements Serializable {
      * @return  a copy of this object.
      */
     protected T copy() {
-        
-        // Declare.
-        T copy;
-        
+
         // Initialize.
-        copy = null;
+        T copy = null;
 
         try {
 
@@ -62,7 +59,7 @@ public abstract class Entity<T extends Entity<T>> implements Serializable {
         catch (IllegalAccessException e) {
             // Ignore.
         }
-        catch(InstantiationException e) {
+        catch (InstantiationException e) {
             // Ignore.
         }
 
@@ -105,7 +102,7 @@ public abstract class Entity<T extends Entity<T>> implements Serializable {
      * @return  true if this object is valid, otherwise false.
      */
     public boolean isValid() {
-        return (this.validate().isEmpty());
+        return this.validate().isEmpty();
     }
 
     /**
@@ -124,8 +121,7 @@ public abstract class Entity<T extends Entity<T>> implements Serializable {
 
         // Check if the replacement object is null.
         if (replacement == null) {
-            throw new IllegalArgumentException(
-                    "The replacement object cannot be null.");
+            throw new IllegalArgumentException("The replacement object cannot be null.");
         }
 
         return (original == null) ? replacement : original;

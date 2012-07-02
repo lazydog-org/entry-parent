@@ -2,7 +2,8 @@ package org.lazydog.entry.internal.repository;
 
 import java.util.Date;
 import java.util.UUID;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -12,7 +13,7 @@ import org.lazydog.entry.model.AuthenticationModule;
 import org.lazydog.entry.model.UserProfile;
 import org.lazydog.entry.spi.repository.EntryRepository;
 import org.lazydog.repository.Criteria;
-import org.lazydog.repository.criterion.ComparisonOperation;
+import org.lazydog.repository.criterion.Comparison;
 
 
 /**
@@ -85,7 +86,7 @@ public class EntryRepositoryImplTest {
     public void beforeTest() throws Exception {
         try {
             Criteria<ApplicationProfile> applicationProfileCriteria = repository.getCriteria(ApplicationProfile.class);
-            applicationProfileCriteria.add(ComparisonOperation.eq("applicationId", applicationProfile.getApplicationId()));
+            applicationProfileCriteria.add(Comparison.eq("applicationId", applicationProfile.getApplicationId()));
             persistedApplicationProfile = repository.find(ApplicationProfile.class, applicationProfileCriteria);
             if (persistedApplicationProfile != null) {
                 ((EntryRepositoryWrapper)repository).getEntityManager().getTransaction().begin();
@@ -94,7 +95,7 @@ public class EntryRepositoryImplTest {
             }
 
             Criteria<ApplicationServerProfile> applicationServerProfileCriteria = repository.getCriteria(ApplicationServerProfile.class);
-            applicationServerProfileCriteria.add(ComparisonOperation.eq("applicationServerId", applicationServerProfile.getApplicationServerId()));
+            applicationServerProfileCriteria.add(Comparison.eq("applicationServerId", applicationServerProfile.getApplicationServerId()));
             persistedApplicationServerProfile = repository.find(ApplicationServerProfile.class, applicationServerProfileCriteria);
             if (persistedApplicationServerProfile != null) {
                 ((EntryRepositoryWrapper)repository).getEntityManager().getTransaction().begin();
@@ -103,7 +104,7 @@ public class EntryRepositoryImplTest {
             }
 
             Criteria<AuthenticationModule> authenticationModuleCriteria = repository.getCriteria(AuthenticationModule.class);
-            authenticationModuleCriteria.add(ComparisonOperation.eq("className", authenticationModule.getClassName()));
+            authenticationModuleCriteria.add(Comparison.eq("className", authenticationModule.getClassName()));
             persistedAuthenticationModule = repository.find(AuthenticationModule.class, authenticationModuleCriteria);
             if (persistedAuthenticationModule != null) {
                 ((EntryRepositoryWrapper)repository).getEntityManager().getTransaction().begin();
@@ -112,7 +113,7 @@ public class EntryRepositoryImplTest {
             }
 
             Criteria<UserProfile> userProfileCriteria = repository.getCriteria(UserProfile.class);
-            userProfileCriteria.add(ComparisonOperation.eq("username", userProfile.getUsername()));
+            userProfileCriteria.add(Comparison.eq("username", userProfile.getUsername()));
             persistedUserProfile = repository.find(UserProfile.class, userProfileCriteria);
             if (persistedUserProfile != null) {
                 ((EntryRepositoryWrapper)repository).getEntityManager().getTransaction().begin();

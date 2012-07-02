@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:a4j="http://richfaces.org/a4j"
+      xmlns:cc="http://java.sun.com/jsf/composite"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:rich="http://richfaces.org/rich">
+
+    <cc:interface componentType="login"/>
+    <cc:implementation>
+        <a4j:region>
+            <a4j:outputPanel ajaxRendered="true">
+                <a4j:commandButton
+                    value="Login"
+                    execute="@this"
+                    oncomplete="#{rich:component('entry-login-modal-panel')}.show();" 
+                    rendered="#{!cc.authenticated}"/>
+                <a4j:commandButton
+                    value="Logout"
+                    execute="@this"
+                    oncomplete="#{rich:component('entry-logout-modal-panel')}.show();" 
+                    rendered="#{cc.authenticated}"/>
+            </a4j:outputPanel>
+            <rich:popupPanel
+                id="entry-login-modal-panel"
+                modal="true"
+                domElementAttachment="form"
+                autosized="true"
+                resizeable="false">
+                <f:facet name="header">
+                    <h:outputText value="Login"/>
+                </f:facet>
+                <h:panelGroup id="entry-login-form">
+                    <rich:messages globalOnly="true"/>
+                    <h:panelGrid columns="3">
+                        <h:outputLabel for="#{cc.clientId}:entry-username" value="Username:"/>
+                        <h:inputText 
+                            id="entry-username"
+                            value="#{cc.username}"
+                            required="true"
+                            requiredMessage="Required."
+                            size="40"
+                            maxlength="255"/>
+                        <rich:message for="#{cc.clientId}:entry-username" ajaxRendered="false"/>
+                        <h:outputLabel for="#{cc.clientId}:entry-password" value="Password:"/>
+                        <h:inputSecret 
+                            id="entry-password"
+                            value="#{cc.password}"
+                            required="true"
+                            requiredMessage="Required."
+                            size="40"
+                            maxlength="255"/>
+                        <rich:message for="#{cc.clientId}:entry-password" ajaxRendered="false"/>
+                    </h:panelGrid>
+                </h:panelGroup>
+                <h:panelGroup>
+                    <a4j:commandButton
+                        value="Login"
+                        execute="@region"
+                        actionListener="#{cc.login}"
+                        oncomplete="if (#{!cc.messageAvailable}) {
+                                        #{rich:component('entry-login-modal-panel')}.hide();
+                                    }"
+                        render="#{cc.clientId}:entry-login-form"/>
+                    <a4j:commandButton
+                        value="Cancel"
+                        execute="@this"
+                        oncomplete="#{rich:component('entry-login-modal-panel')}.hide();"/>
+                </h:panelGroup>
+            </rich:popupPanel>
+            <rich:popupPanel
+                id="entry-logout-modal-panel"
+                modal="true"
+                domElementAttachment="form"
+                autosized="true"
+                resizeable="false">
+                <f:facet name="header">
+                    <h:outputText value="Logout"/>
+                </f:facet>
+                <h:panelGroup>
+                    <rich:messages globalOnly="true"/>
+                    <h:outputText value="Are you sure you want to logout?"/>
+                </h:panelGroup>
+                <h:panelGroup>
+                    <a4j:commandButton
+                        value="Logout"
+                        execute="@this"
+                        actionListener="#{cc.logout}"
+                        oncomplete="if (#{!cc.messageAvailable}) {
+                                        #{rich:component('entry-logout-modal-panel')}.hide();
+                                    }"/>
+                    <a4j:commandButton
+                        value="Cancel"
+                        execute="@this"
+                        oncomplete="#{rich:component('entry-logout-modal-panel')}.hide();"/>
+                </h:panelGroup>
+            </rich:popupPanel>
+        </a4j:region>
+    </cc:implementation>
+</html>

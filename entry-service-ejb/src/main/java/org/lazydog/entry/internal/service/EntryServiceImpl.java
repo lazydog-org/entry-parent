@@ -14,7 +14,7 @@ import org.lazydog.entry.EntryService;
 import org.lazydog.entry.model.ApplicationProfile;
 import org.lazydog.entry.model.UserProfile;
 import org.lazydog.repository.Criteria;
-import org.lazydog.repository.criterion.ComparisonOperation;
+import org.lazydog.repository.criterion.Comparison;
 
 
 /**
@@ -92,7 +92,7 @@ public class EntryServiceImpl implements EntryService {
         
         // Get the application profile for the application identifier.
         criteria = entryRepository.getCriteria(ApplicationProfile.class);
-        criteria.add(ComparisonOperation.eq("applicationId", applicationId));
+        criteria.add(Comparison.eq("applicationId", applicationId));
         applicationProfile = entryRepository.find(ApplicationProfile.class, criteria);
         
         return applicationProfile;
@@ -147,7 +147,7 @@ public class EntryServiceImpl implements EntryService {
 
         // Get the user profile for the username.
         criteria = entryRepository.getCriteria(UserProfile.class);
-        criteria.add(ComparisonOperation.eq("username", username));
+        criteria.add(Comparison.eq("username", username));
         userProfile = entryRepository.find(UserProfile.class, criteria);
 
         return userProfile;

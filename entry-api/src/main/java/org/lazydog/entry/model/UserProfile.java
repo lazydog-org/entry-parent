@@ -43,16 +43,11 @@ public class UserProfile extends Entity<UserProfile> implements Comparable<UserP
      */
     @Override
     public int compareTo(UserProfile that) {
-        
-        // Declare.
-        int lastCompare;
-        String thatUsername;
-        String thisUsername;
 
         // Initialize.
-        lastCompare = 0;
-        thatUsername = replaceNull(that.getUsername(), "");
-        thisUsername = replaceNull(this.getUsername(), "");
+        int lastCompare = 0;
+        String thatUsername = replaceNull(that.getUsername(), "");
+        String thisUsername = replaceNull(this.getUsername(), "");
         
         // Compare this object to the object.
         lastCompare = thisUsername.compareTo(thatUsername);
@@ -67,12 +62,9 @@ public class UserProfile extends Entity<UserProfile> implements Comparable<UserP
      */
     @Override
     public UserProfile copy() {
-        
-        // Declare.
-        UserProfile copy;
-        
+
         // Create a copy.
-        copy = super.copy();
+        UserProfile copy = super.copy();
         copy.setActivationCode(this.getActivationCode());
         copy.setEmailAddress(this.getEmailAddress());
         copy.setFirstName(this.getFirstName());
@@ -92,17 +84,12 @@ public class UserProfile extends Entity<UserProfile> implements Comparable<UserP
      */
     @Override
     public boolean equals(Object object) {
-        
-        // Declare.
-        boolean equals;
 
         // Initialize.
-        equals = false;
+        boolean equals = false;
         
-        // Check if the object is an instance of this class
-        // and is equal to this object.
-        if (object instanceof UserProfile &&
-            this.compareTo((UserProfile)object) == 0) {
+        // Check if the object is an instance of this class and is equal to this object.
+        if (object instanceof UserProfile && this.compareTo((UserProfile)object) == 0) {
             equals = true;
         }
         
@@ -188,12 +175,9 @@ public class UserProfile extends Entity<UserProfile> implements Comparable<UserP
      */
     @Override
     public int hashCode() {
-        
-        // Declare.
-        String thisUsername;
-        
+
         // Initialize.
-        thisUsername = replaceNull(this.getUsername(), "");
+        String thisUsername = replaceNull(this.getUsername(), "");
         
         return thisUsername.hashCode();
     }
@@ -205,11 +189,8 @@ public class UserProfile extends Entity<UserProfile> implements Comparable<UserP
      */
     public static UserProfile newInstance() {
 
-        // Declare.
-        UserProfile userProfile;
-
         // Create a new instance.
-        userProfile = new UserProfile();
+        UserProfile userProfile = new UserProfile();
         userProfile.setActivationCode(generateUuid());
         userProfile.setUuid(generateUuid());
 
@@ -286,12 +267,9 @@ public class UserProfile extends Entity<UserProfile> implements Comparable<UserP
      */
     @Override
     public String toString() {
-                
-        // Declare.
-        StringBuffer toString;
-        
+
         // Initialize.
-        toString = new StringBuffer();
+        StringBuffer toString = new StringBuffer();
         
         toString.append("UserProfile [");
         toString.append("activationCode = ").append(this.getActivationCode());
