@@ -8,11 +8,11 @@ import javax.ejb.Remote;
 import javax.ejb.Singleton;
 import javax.interceptor.Interceptors;
 import org.lazydog.ejbmonitor.interceptor.EJBMonitor;
-import org.lazydog.entry.spi.account.manager.EntryAccountManager;
-import org.lazydog.entry.spi.repository.EntryRepository;
 import org.lazydog.entry.EntryService;
 import org.lazydog.entry.model.ApplicationProfile;
 import org.lazydog.entry.model.UserProfile;
+import org.lazydog.entry.spi.account.manager.EntryAccountManager;
+import org.lazydog.entry.spi.repository.EntryRepository;
 import org.lazydog.repository.Criteria;
 import org.lazydog.repository.criterion.Comparison;
 
@@ -22,15 +22,15 @@ import org.lazydog.repository.criterion.Comparison;
  * 
  * @author  Ron Rickard
  */
-@Singleton(name="ejb/EntryService", mappedName="ejb/EntryService")
+@Singleton(name="ejb/EntryService")
 @Remote(EntryService.class)
 @Interceptors(EJBMonitor.class)
 public class EntryServiceImpl implements EntryService {
 
-    @EJB(beanName="ejb/EntryRepository", beanInterface=EntryRepository.class)
+    @EJB
     private EntryRepository entryRepository;
 
-    @EJB(beanName="ejb/EntryAccountManager", beanInterface=EntryAccountManager.class)
+    @EJB
     private EntryAccountManager entryAccountManager;
 
     /**

@@ -10,6 +10,7 @@
     <packaging>ear</packaging>
     <name>Entry EAR</name>
     <build>
+        <finalName>${project.artifactId}</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -18,6 +19,7 @@
                     <generateApplicationXml>true</generateApplicationXml>
                     <defaultLibBundleDir>lib</defaultLibBundleDir>
                     <version>6</version>
+                    <applicationName>${project.artifactId}</applicationName>
                     <modules>
                         <webModule>
                             <groupId>${project.groupId}</groupId>
@@ -27,14 +29,17 @@
                         <ejbModule>
                             <groupId>${project.groupId}</groupId>
                             <artifactId>entry-account-manager-ejb</artifactId>
+                            <bundleFileName>entry-account-manager-ejb.jar</bundleFileName>
                         </ejbModule>
                         <ejbModule>
                             <groupId>${project.groupId}</groupId>
                             <artifactId>entry-repository-ejb</artifactId>
+                            <bundleFileName>entry-repository-ejb.jar</bundleFileName>
                         </ejbModule>
                         <ejbModule>
                             <groupId>${project.groupId}</groupId>
                             <artifactId>entry-service-ejb</artifactId>
+                            <bundleFileName>entry-service-ejb.jar</bundleFileName>
                         </ejbModule>
                     </modules>
                 </configuration>

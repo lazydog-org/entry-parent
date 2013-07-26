@@ -10,7 +10,7 @@
     <packaging>jar</packaging>
     <name>Entry Faces User Interface</name>
     <properties>
-        <org.richfaces.bom.version>4.2.1.Final</org.richfaces.bom.version>
+        <org.richfaces.bom.version>4.3.3.Final</org.richfaces.bom.version>
     </properties>
     <dependencyManagement>
         <dependencies>
@@ -33,12 +33,10 @@
         <dependency>
             <groupId>org.richfaces.ui</groupId>
             <artifactId>richfaces-components-ui</artifactId>
-            <version>${org.richfaces.bom.version}</version>
         </dependency>
         <dependency>
             <groupId>org.richfaces.core</groupId>
             <artifactId>richfaces-core-impl</artifactId>
-            <version>${org.richfaces.bom.version}</version>
         </dependency>
     </dependencies>
 </project>

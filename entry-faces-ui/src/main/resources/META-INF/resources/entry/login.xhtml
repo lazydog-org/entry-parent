@@ -9,7 +9,7 @@
 
     <cc:interface componentType="login"/>
     <cc:implementation>
-        <a4j:region>
+        <h:form>
             <a4j:outputPanel ajaxRendered="true">
                 <a4j:commandButton
                     value="Login"
@@ -34,7 +34,7 @@
                 <h:panelGroup id="entry-login-form">
                     <rich:messages globalOnly="true"/>
                     <h:panelGrid columns="3">
-                        <h:outputLabel for="#{cc.clientId}:entry-username" value="Username:"/>
+                        <h:outputLabel for="entry-username" value="Username:"/>
                         <h:inputText 
                             id="entry-username"
                             value="#{cc.username}"
@@ -42,8 +42,8 @@
                             requiredMessage="Required."
                             size="40"
                             maxlength="255"/>
-                        <rich:message for="#{cc.clientId}:entry-username" ajaxRendered="false"/>
-                        <h:outputLabel for="#{cc.clientId}:entry-password" value="Password:"/>
+                        <rich:message for="entry-username" ajaxRendered="false"/>
+                        <h:outputLabel for="entry-password" value="Password:"/>
                         <h:inputSecret 
                             id="entry-password"
                             value="#{cc.password}"
@@ -51,18 +51,18 @@
                             requiredMessage="Required."
                             size="40"
                             maxlength="255"/>
-                        <rich:message for="#{cc.clientId}:entry-password" ajaxRendered="false"/>
+                        <rich:message for="entry-password" ajaxRendered="false"/>
                     </h:panelGrid>
                 </h:panelGroup>
                 <h:panelGroup>
                     <a4j:commandButton
                         value="Login"
-                        execute="@region"
+                        execute="@form"
                         actionListener="#{cc.login}"
                         oncomplete="if (#{!cc.messageAvailable}) {
                                         #{rich:component('entry-login-modal-panel')}.hide();
                                     }"
-                        render="#{cc.clientId}:entry-login-form"/>
+                        render="@all"/>
                     <a4j:commandButton
                         value="Cancel"
                         execute="@this"
@@ -89,13 +89,14 @@
                         actionListener="#{cc.logout}"
                         oncomplete="if (#{!cc.messageAvailable}) {
                                         #{rich:component('entry-logout-modal-panel')}.hide();
-                                    }"/>
+                                    }"
+                        render="@all"/>
                     <a4j:commandButton
                         value="Cancel"
                         execute="@this"
                         oncomplete="#{rich:component('entry-logout-modal-panel')}.hide();"/>
                 </h:panelGroup>
             </rich:popupPanel>
-        </a4j:region>
+        </h:form>
     </cc:implementation>
 </html>

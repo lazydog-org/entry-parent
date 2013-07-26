@@ -24,7 +24,7 @@ public class EntryRepositoryEJB extends EntryRepositoryImpl implements EntryRepo
     private EntityManager entityManager;
 
     @PostConstruct
-    private void initialize() {
+    protected void initialize() {
         this.setEntityManager(this.entityManager);
     }
 }

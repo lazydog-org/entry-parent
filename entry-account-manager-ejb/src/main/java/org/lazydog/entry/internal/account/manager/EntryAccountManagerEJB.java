@@ -24,7 +24,7 @@ public class EntryAccountManagerEJB extends EntryAccountManagerImpl implements E
     private Properties environment;
 
     @PostConstruct
-    private void initialize() {
+    protected void initialize() {
         this.setEnvironment(this.environment);
     }
 }

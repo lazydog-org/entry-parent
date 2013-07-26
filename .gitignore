@@ -1,0 +1,16 @@
+/entry-application-manager/target/
+/entry-account-manager/target/
+/entry-account-manager-spi/target/
+/entry-account-manager-ejb/target/
+/entry-repository-spi/target/
+/entry-repository/target/
+/entry-service-ejb/target/
+/entry-repository-ejb/target/
+/entry-faces-ui/target/
+/entry-web/target/
+/entry-ear/target/
+/entry-auth-module/target/
+/entry-mbean/target/
+/entry-api/target/
+/test-web/target/
+/test-ear/target/

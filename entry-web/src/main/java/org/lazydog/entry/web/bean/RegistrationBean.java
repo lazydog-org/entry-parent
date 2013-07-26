@@ -1,7 +1,7 @@
 package org.lazydog.entry.web.bean;
 
-import javax.ejb.EJB;
 import javax.annotation.PostConstruct;
+import javax.ejb.EJB;
 import javax.faces.bean.ManagedBean;
 import javax.faces.bean.ManagedProperty;
 import javax.faces.bean.RequestScoped;
@@ -20,7 +20,7 @@ public class RegistrationBean {
 
     @ManagedProperty(value="#{param.applicationId}")
     private String applicationId;
-    @EJB(mappedName="ejb/EntryService", beanInterface=EntryService.class)
+    @EJB
     private EntryService entryService;
     private UserProfile userProfile;
 
